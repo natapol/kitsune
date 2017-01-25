@@ -1,0 +1,5 @@
+ksig.egg-info
+*.pyc
+version.py
+build/
+ksiga.egg-info/
