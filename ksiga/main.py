@@ -61,9 +61,14 @@ def relative_entropy(args):
 
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--in", required=True, help="")
+    parser.add_argument("-i", "--file", required=True, help="")
     parser.add_argument("-k", "--ksize", required=True, type=int)
-    exit(1)
+    parser.add_argument("-w", "--wd", default=os.getcwd())
+    args = parser.parse_args(args)
+
+    relEntropy = fsig.calculate_relative_entropy(args.file, args.ksize)
+    print(relEntropy)
+
 
 def average_common_feature(args):
     """ Calculate an average number of common feature.

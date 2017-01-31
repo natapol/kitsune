@@ -20,17 +20,16 @@ REGEX = re.compile("[^ATGC]")
 id_fn = lambda x: x
 
 def kmer_location(kmer):
-    """ Calculate kmer location to store in matrix
+    """ Calculate kmer location to store in array
     """
-    OBV = KMER_DIC
-    l = len(kmer)
-    counter = -1
-    for i, c in enumerate(kmer):
-        loc = l - i - 1  # +1 so it start with 0
-        loc_modifier = 4 ** loc
-        counter += OBV[c] * loc_modifier
+    encMap = KMER_DIC
 
-    return counter
+    code = 0
+    for ch in kmer:
+        code *= 4
+        code += encMap[ch]
+
+    return code
 
 def generateMers(size=4):
     """Return a list of mers
