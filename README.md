@@ -1,2 +1,3 @@
-# KSIG
+# KSIGA
 
+# How to run

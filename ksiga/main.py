@@ -11,14 +11,18 @@ from ksiga import fsig
 DEFAULT_K = 13
 
 def main():
-    commands = {"index": index, "relent": relative_entropy, "acf":average_common_feature, "off": off}
+    commands = {"index": index,
+                "relent": relative_entropy,
+                "acf":average_common_feature,
+                "off": observe_feature_frequency}
+
     parser = argparse.ArgumentParser(description="Signature for virus",
                                      usage="""ksiga <command> [<args>]
 
 Commands can be:
 index <filenames>                      Compute k-mer.
 relent <filenames.sig>                 Compute relative entropy.
-acf <filenames>                        Compute average number of common feature between signature1 and signature2.
+acf <filenames>                        Compute average number of common feature between signatures.
 off <filenames.sig>                    Compute observed feature frequencies.
 """)
     parser.add_argument('command')
@@ -70,7 +74,6 @@ def relative_entropy(args):
     relEntropy = fsig.calculate_relative_entropy(args.file, args.ksize)
     print(relEntropy)
 
-
 def average_common_feature(args):
     """ Calculate an average number of common feature.
         aka, k-mer exist in both sample.
@@ -88,7 +91,7 @@ def average_common_feature(args):
     acf = fsig.calculate_average_common_feature(args.filenames, args.ksize)
     print(acf)
 
-def off(args):
+def observe_feature_frequency(args):
     """ Calculate an observe feature frequency
 
     Args:
@@ -97,5 +100,11 @@ def off(args):
     Returns: TODO
 
     """
-    pass
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--file", required=True, help="")
+    parser.add_argument("-k", "--ksize", required=True, type=int)
+    parser.add_argument("-w", "--wd", default=os.getcwd())
+    args = parser.parse_args(args)
+    occF = fsig.calculate_obsff(args.file, args.ksize)
+    print(occF)
 

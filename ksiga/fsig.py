@@ -229,21 +229,6 @@ def calculate_relative_entropy(store, ksize):
      
     return relativeEntropy
 
-def calculate_common_feature(store1, store2, ksize):
-    """ Calculate the common feature between pair of sequences
-
-    Args:
-        store1 (list(str)): Storage
-        store2 (list(str)): Storage
-        ksize (int): k-mer size.
-
-    Returns: TODO
-
-    """
-    # Build sparse matrix.
-    store1 = KmerSignature(store1)
-    store2 = KmerSignature(store1)
-
 def calculate_average_common_feature(stores, ksize):
     """ Calculate an average common features from sparse matrix.
 
@@ -272,6 +257,24 @@ def calculate_average_common_feature(stores, ksize):
         counts.append(found.shape[0])
 
     return sum(counts) / norm
+
+def calculate_obsff(store, ksize):
+    """ Calculate an average common features from sparse matrix.
+
+    Args:
+        store (TODO): TODO
+        ksize (TODO): TODO
+
+    Returns: TODO
+
+    """
+    store = KmerSignature(store)
+    # Sparse array of ONE row, so it has shape = (1, col)
+    array = store.get_kmer(ksize)
+    count = array.indices.shape[0]
+
+    expect = 4 ** ksize
+    return count / ksize
 
 def rebuild_sparse_matrix(stores, ksize):
     """ Rebuild sparse matrix from list of stores
@@ -305,7 +308,6 @@ def rebuild_sparse_matrix(stores, ksize):
     shape = (rowNum, colNum)
 
     return sps.csr_matrix((data, indices, indptr), shape=shape)
-
 
 def build_signature(fasta, ksize, store):
     """ Build signature file from fasta.
