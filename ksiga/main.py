@@ -18,12 +18,13 @@ def main():
 Commands can be:
 index <filenames>                      Compute k-mer.
 relent <filenames.sig>                 Compute relative entropy.
-acf <filename1.sig> <filename2.sig>    Compute average number of common feature between signature1 and signature2.
+acf <filenames>                        Compute average number of common feature between signature1 and signature2.
 off <filenames.sig>                    Compute observed feature frequencies.
 """)
     parser.add_argument('command')
     args = parser.parse_args(sys.argv[1:2])
     if args.command not in commands:
+        parser.print_help()
         sys.exit(1)
 
     cmd = commands.get(args.command)
@@ -81,9 +82,11 @@ def average_common_feature(args):
 
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--in", required=True, help="")
+    parser.add_argument("filenames", nargs="+", help="file(s) of signature")
     parser.add_argument("-k", "--ksize", required=True, type=int)
-    exit(1)
+    args = parser.parse_args(args)
+    acf = fsig.calculate_average_common_feature(args.filenames, args.ksize)
+    print(acf)
 
 def off(args):
     """ Calculate an observe feature frequency

@@ -118,6 +118,23 @@ def has_indices(sparseArray, index):
     except IndexError:
         return ind.shape[0]
 
+def sortedsearch(npArray, vals):
+    """ Search for sorted array
+        Unlike numpy's implementation, this return an vals that found
+
+    Args:
+        npArray (TODO): TODO
+        vals (TODO): TODO
+
+    Returns: numpy array of vals that found in npArray
+
+    """
+    idx = np.searchsorted(npArray, vals)
+    mask_idx = idx == npArray.shape[0]
+    idx[mask_idx] = npArray.shape[0] - 1
+    valsIndex = npArray[idx] == vals
+    return vals[valsIndex]
+
 def calculate_relative_entropy(store, ksize):
     """ Calculate the relative entropy (obs vs expected)
         The equation is (Something in latex here)
@@ -224,15 +241,10 @@ def calculate_common_feature(store1, store2, ksize):
 
     """
     # Build sparse matrix.
-    store1 = h5py.File(store1, "r")
-    store2 = h5py.File(store2, "r")
+    store1 = KmerSignature(store1)
+    store2 = KmerSignature(store1)
 
-    sigName = "/kmer/{size}".format(size=ksize)
-
-    if (sigName not in store1) or (sigName not in store2):
-        raise IndexError("Not kmer")
-
-def calculate_average_common_feature(csrMatrix, ksize):
+def calculate_average_common_feature(stores, ksize):
     """ Calculate an average common features from sparse matrix.
 
     Args:
@@ -242,25 +254,57 @@ def calculate_average_common_feature(csrMatrix, ksize):
     Returns: TODO
 
     """
-    N = csrMatrix.shape[0]
+    import itertools
 
+    csr_matrix = rebuild_sparse_matrix(stores, ksize)
+    rowNum = csr_matrix.shape[0]
+
+    counts = []
+    norm = csr_matrix.shape[0] - 1
+
+    for i, j in itertools.combinations(range(rowNum), r=2):
+        iRow = csr_matrix[i]
+        jRow = csr_matrix[j]
+        # Find column (same kmer) that contain in both row. Good thing that we already sorted it.
+        # If search sort return 0. it will be a trouble.
+        iRow.indices , jRow.indices
+        found = sortedsearch(iRow.indices, jRow.indices)
+        counts.append(found.shape[0])
+
+    return sum(counts) / norm
 
 def rebuild_sparse_matrix(stores, ksize):
-    """TODO: Docstring for rebuild_sparse_matrix.
+    """ Rebuild sparse matrix from list of stores
 
     Args:
         stores (TODO): TODO
-        ksize (TODO): TODO
+        ksize (int): Size of kmer to calculate
 
     Returns: TODO
 
     """
 
-    # data 
-    # indices
-    # indptr
-    # for store in stores:
-        
+    # I don't know why scipy loves to convert sparse matrix to COO first....
+    data = []
+    indices = []
+    indptr = []
+
+    indptr.append(0)
+
+    for store in stores:
+        array = KmerSignature(store).get_kmer(ksize)
+        data.append(array.data)
+        indices.append(array.indices)
+        indptr.append(indptr[-1] + array.data.shape[0])
+
+    data = np.concatenate(data)
+    indices = np.concatenate(indices)
+
+    rowNum = len(stores)
+    colNum = 4 ** ksize
+    shape = (rowNum, colNum)
+
+    return sps.csr_matrix((data, indices, indptr), shape=shape)
 
 
 def build_signature(fasta, ksize, store):
@@ -282,7 +326,7 @@ def build_signature(fasta, ksize, store):
 
     group = store.create_group(sigName)
     indice, data = kmer.build_csr_matrix_from_fasta(fasta, ksize)
-    shapeSize = 4 ** (ksize)
+    colSize = 4 ** (ksize)
     group.create_dataset("indices", compression="gzip", compression_opts=5, data=indice)
     group.create_dataset("data", compression="gzip", compression_opts=5, data=data)
-    group.create_dataset("shape", data=(1, shapeSize))
+    group.create_dataset("shape", data=(1, colSize))
