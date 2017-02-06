@@ -65,12 +65,12 @@ def index(args):
     parser = argparse.ArgumentParser()
     parser.add_argument("filenames", nargs="+", help="file(s) of sequences")
     parser.add_argument("-k", "--ksize", required=True, type=int)
-    parser.add_argument("-o", "--od", default=os.getcwd())
+    parser.add_argument("-o", "--wd", default=os.getcwd())
     args = parser.parse_args(args)
 
     filenames = args.filenames
     ksize = args.ksize
-    od = args.od
+    wd = args.wd
 
     for filename in args.filenames:
         if not os.path.exists(filename):
@@ -80,7 +80,7 @@ def index(args):
     for filename in filenames:
         # Clean folder name from file
         basename = pathlib.Path(filename).name
-        outputName = "{wd}/{fn}.ksig".format(od=od, fn=basename)
+        outputName = "{wd}/{fn}.ksig".format(wd=wd, fn=basename)
         fInputH = openner(filename, mode="rt")
         fsig.build_signature(fInputH, ksize, outputName)
 
