@@ -31,6 +31,7 @@ def has_indices(sparseArray, index):
     except IndexError:
         return ind.shape[0]
 
+
 def sortedsearch(npArray, vals):
     """ Search for sorted array
         Unlike numpy's implementation, this return an vals that found
@@ -47,6 +48,7 @@ def sortedsearch(npArray, vals):
     idx[mask_idx] = npArray.shape[0] - 1
     valsIndex = npArray[idx] == vals
     return vals[valsIndex]
+
 
 def calculate_relative_entropy(store, ksize):
     """ Calculate the relative entropy (obs vs expected)
@@ -142,6 +144,7 @@ def calculate_relative_entropy(store, ksize):
      
     return relativeEntropy
 
+
 def calculate_average_common_feature(stores, ksize):
     """ Calculate an average common features from sparse matrix.
 
@@ -164,12 +167,11 @@ def calculate_average_common_feature(stores, ksize):
         iRow = csr_matrix[i]
         jRow = csr_matrix[j]
         # Find column (same kmer) that contain in both row. Good thing that we already sorted it.
-        # If search sort return 0. it will be a trouble.
-        iRow.indices , jRow.indices
         found = sortedsearch(iRow.indices, jRow.indices)
         counts.append(found.shape[0])
 
     return sum(counts) / norm
+
 
 def calculate_obsff(store, ksize):
     """ Calculate an average common features from sparse matrix.
@@ -188,6 +190,7 @@ def calculate_obsff(store, ksize):
 
     expect = 4 ** ksize
     return count / ksize
+
 
 def rebuild_sparse_matrix(stores, ksize):
     """ Rebuild sparse matrix from list of stores
@@ -222,11 +225,12 @@ def rebuild_sparse_matrix(stores, ksize):
 
     return sps.csr_matrix((data, indices, indptr), shape=shape)
 
+
 def build_signature(fasta, ksize, store):
     """ Build signature file from fasta.
 
     Args:
-        fasta (str): filename
+        fasta (fh): filehandle for fasta file
         ksize (int): kmer size
         store (str): filename
 

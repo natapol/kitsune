@@ -78,7 +78,7 @@ def kmer_count_fasta(f, ksize=13, keyfn=id_fn):
         mainCounter += kmer_count(seq, ksize, keyfn)
     return mainCounter
 
-def build_csr_matrix_from_fasta(f, ksize):
+def build_csr_matrix_from_fasta(fh, ksize):
     """ Build a `row` of csr matrix from fasta file.
         Could be later build into a matrix.
 
@@ -90,7 +90,7 @@ def build_csr_matrix_from_fasta(f, ksize):
     """
 
     mainCounter = Counter()
-    handle = SeqIO.parse(f, "fasta")
+    handle = SeqIO.parse(fh, "fasta")
     keyfn = create_kmer_loc_fn(ksize)
 
     for seq in handle:
