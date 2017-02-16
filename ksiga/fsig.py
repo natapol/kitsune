@@ -14,6 +14,7 @@ from ksiga import kmer
 from ksiga import logutil
 
 # TODO: Refactor operation into seperate class call SparseArray.
+# TODO: This one is pretty much the same with sortedsearch. REFACTOR it.
 def has_indices(sparseArray, index):
     """ Search if sparse array has index.
         Return size of array if not found ()
@@ -53,7 +54,7 @@ def sortedsearch(npArray, vals):
 def calculate_relative_entropy(store, ksize):
     """ Calculate the relative entropy (obs vs expected)
         The equation is (Something in latex here)
-        Expected (ABCD) =   (obs(ABC) * obs(BCD)) / obs(BC)
+        Expected (ABCD) =  (obs(ABC) * obs(BCD)) / obs(BC)
     """
     # Check if exists
     store = KmerSignature(store)

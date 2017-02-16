@@ -3,3 +3,4 @@ ksig.egg-info
 version.py
 build/
 ksiga.egg-info/
+.cache
