@@ -6,6 +6,8 @@ import warnings
 import numpy as np
 from scipy.misc import logsumexp
 
+import ksiga.sparse_util as su
+
 def shannon_entropy(p):
     """Calculates shannon entropy in bits.
 
@@ -200,7 +202,22 @@ def sparse_kl_divergence(p, q):
     kl : float
         KL divergence of approximating p with the distribution q
     """
-    return kl_divergence(p.toarray()[0], q.toarray()[0])
+    # kl = np.sum(np.where(p != 0, p*np.log2(p/q), 0))
+    
+    # Get index that appear in both sparse matrix
+    valBoth = np.intersect1d(p.indices, q.indices)
+
+    # Get index (assume that both are sorted)
+    p_idx = su.searchsorted(p.indices, q.indices)
+    q_idx = su.searchsorted(q.indices, p.indices)
+
+    p_val = p.data[p_idx]
+    q_val = q.data[q_idx]
+
+    kl = np.sum(p_val * np.log2(p_val/q_val))
+    # Get only part where BOTH has value.
+
+    return kl
 
 
 def sparse_js_divergence(p, q):
