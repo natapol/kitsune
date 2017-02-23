@@ -10,27 +10,9 @@ import h5py
 import numpy as np
 
 from ksiga.ksignature import KmerSignature
+import ksiga.sparse_util as su
 from ksiga import kmer
 from ksiga import logutil
-
-# TODO: Refactor operation into seperate class call SparseArray.
-# TODO: This one is pretty much the same with sortedsearch. REFACTOR it.
-def has_indices(sparseArray, index):
-    """ Search if sparse array has index.
-        Return size of array if not found ()
-    """
-    # Search in sparse array
-    ind = sparseArray.indices
-
-    # If sorted
-    insert = np.searchsorted(ind, index)
-    try:
-        if ind[insert] == index:
-            return insert
-        else:
-            return ind.shape[0]
-    except IndexError:
-        return ind.shape[0]
 
 
 def sortedsearch(npArray, vals):
@@ -64,8 +46,6 @@ def calculate_relative_entropy(store, ksize):
     array1 = store.get_kmer(ksize-1)
     array2 = store.get_kmer(ksize-2)
 
-    merGen = kmer.generateMers(ksize)
-
     genLoc0 = kmer.create_kmer_loc_fn(ksize)
     genLoc1 = kmer.create_kmer_loc_fn(ksize-1)
     genLoc2 = kmer.create_kmer_loc_fn(ksize-2)
@@ -76,38 +56,23 @@ def calculate_relative_entropy(store, ksize):
     MRes = []
 
     # Calculate final normalization factor. Delegate the normalization to the last step (Arithmatric).
-
-    # TODO: May be it would be easier to do it in dense array? Dense array take a lot of space
-    # but it does not need to do all of these magic.
-    # TODO: Instead of by mer, just iterate the biggest kmer array.
-    for mer in merGen:
+    # TODO: Collect everything and calculate in array base
+    for (idxA, locL) in enumerate(array0.indices):
+        mer = kmer.decode((locL, ksize))
         merFront = mer[0:-1]
         merBack = mer[1:]
         merMiddle = mer[1:-1]
 
-        locL = genLoc0(mer)
-        # Normal csr procedure is to convert to coo first but we can skip all of that since
-        # 1. We make sure it sorted 2. We don't need Y-axis location.
-        idxA = has_indices(array0, locL)
-
-        if idxA == array0.indices.shape[0]:
-            # This kmer does not have any obs. skip it.
-            continue
-
-        # logutil.notify(mer)
-        # logutil.notify(locL)
-        # logutil.notify(idxA)
-        # logutil.notify(array0.indices[0:10])
+        # Find location of left mer, right mer, and middle mer
         locF = genLoc1(merFront)
         locB = genLoc1(merBack)
         locM = genLoc2(merMiddle)
+        idxF = su.has_indices(array1, locF)
+        idxB = su.has_indices(array1, locB)
+        idxM = su.has_indices(array2, locM)
 
-        # Find location of left mer, right mer, and middle mer
-        idxF = has_indices(array1, locF)
-        idxB = has_indices(array1, locB)
-        idxM = has_indices(array2, locM)
-
-        # For debugging.
+        # For debugging. This shouldn't happend since we should quite when
+        # the biggest kmer is not found.
         if (idxF == array1.indices.shape[0]):
             raise IndexError("Left not found")
         if (idxB == array1.indices.shape[0]):
@@ -142,6 +107,18 @@ def calculate_relative_entropy(store, ksize):
     rhs = np.log2(observation / expectation) + np.log2(normFactor)
     lhs = ARes / norm0
     relativeEntropy = (lhs * rhs).sum()
+
+    # Full version, speed is roughly the same with above?
+    # norm0 = array0.data.sum()
+    # norm1 = array1.data.sum()
+    # norm2 = array2.data.sum()
+    # expectation = (FRes/norm1) * (BRes/norm1) / (MRes/norm2)
+    # observation = ARes / norm0
+    # relativeEntropy2 = (observation * np.log2(observation/expectation)).sum()
+
+    # print(relativeEntropy)
+    # print(relativeEntropy2)
+
      
     return relativeEntropy
 
