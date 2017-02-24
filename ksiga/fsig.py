@@ -138,17 +138,34 @@ def calculate_average_common_feature(stores, ksize):
     csr_matrix = rebuild_sparse_matrix(stores, ksize)
     rowNum = csr_matrix.shape[0]
 
-    counts = []
+    vals = []
     norm = csr_matrix.shape[0] - 1
 
-    for i, j in itertools.combinations(range(rowNum), r=2):
-        iRow = csr_matrix[i]
-        jRow = csr_matrix[j]
-        # Find column (same kmer) that contain in both row. Good thing that we already sorted it.
-        found = sortedsearch(iRow.indices, jRow.indices)
-        counts.append(found.shape[0])
+    for i in (range(rowNum)):
+        val = 0
+        for j in (range(rowNum)):
+            if i == j:
+                continue
+            iRow = csr_matrix[i]
+            jRow = csr_matrix[j]
+            found = sortedsearch(iRow.indices, jRow.indices)
+            val += found.shape[0]
 
-    return sum(counts) / norm
+        vals.append(val)
+
+    result = np.array(vals) / norm
+
+    return result
+
+
+    # for i, j in itertools.combinations(range(rowNum), r=2):
+        # iRow = csr_matrix[i]
+        # jRow = csr_matrix[j]
+        # # Find column (same kmer) that contain in both row. Good thing that we already sorted it.
+        # found = sortedsearch(iRow.indices, jRow.indices)
+        # counts.append(found.shape[0])
+
+    # return sum(counts) / norm
 
 
 def calculate_obsff(store, ksize):
