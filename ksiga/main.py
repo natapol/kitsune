@@ -13,7 +13,6 @@ from sklearn.preprocessing import normalize
 from joblib import Parallel, delayed
 
 from ksiga import logutil
-from ksiga import mmath
 from ksiga import fsig
 
 DEFAULT_K = 13
@@ -124,10 +123,18 @@ def average_common_feature(args):
     parser = argparse.ArgumentParser()
     parser.add_argument("filenames", nargs="+", help="file(s) of signature")
     parser.add_argument("-k", "--ksize", required=True, type=int)
+    parser.add_argument("-o", "--output")
     args = parser.parse_args(args)
-    acf = fsig.calculate_average_common_feature(args.filenames, args.ksize)
-    print(acf)
 
+    outF = args.output
+    if outF is None:
+        outHandle = sys.stdout.buffer
+    else:
+        outHandle = open(outF, "wb")  # wb for numpy write
+
+    acf = fsig.calculate_average_common_feature(args.filenames, args.ksize)
+
+    np.savetxt(outHandle, acf)
 
 def observe_feature_frequency(args):
     """ Calculate an observe feature frequency
@@ -172,7 +179,7 @@ def generate_distance_matrix(args):
     outF = args.output
 
     if outF is None:
-        outHandle = sys.stdout
+        outHandle = sys.stdout.buffer
     else:
         outHandle = open(outF, "wb")  # wb for numpy write
 
@@ -187,8 +194,7 @@ def generate_distance_matrix(args):
 
     csr_matrix_norm = normalize(csr_matrix, norm='l1', axis=1)
 
-    # TODO: Maybe use pairwise_distances from scikit-learn?
-    # TODO: Or maybe parallel from joblib?
+    # TODO: Non-paralel version
     #for i, j in itertools.combinations(range(rowNum), r=2):
     #    iRow = csr_matrix_norm[i]
     #    jRow = csr_matrix_norm[j]
@@ -196,12 +202,6 @@ def generate_distance_matrix(args):
     #    disStr = str(distance)
     #    writeThis = bytes("{}{}".format(disStr, os.linesep), encoding="utf-8")
     #    outHandle.write(writeThis)
-
-    #with Parallel(n_jobs=5, backend="threading") as pool:
-    #    result = pool(delayed(mmath.sparse_js_distance)(csr_matrix_norm[i], csr_matrix_norm[j])
-    #                  for i, j in itertools.combinations(range(rowNum), r=2))
-
-    #np.savetxt(outHandle, result)
 
     with Parallel(n_jobs=10, backend="threading") as pool:
         generator = ((i,j) for i, j in itertools.combinations(range(rowNum), r=2))

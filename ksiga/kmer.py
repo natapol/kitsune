@@ -31,6 +31,25 @@ def kmer_location(kmer):
 
     return code
 
+encoding_map = KMER_DIC
+decoding_lst = KMER_ARR
+
+def encode(k):
+    code = 0
+    for ch in k:
+        code *= 4
+        code += encoding_map[ch]
+    return code, len(k)
+
+def decode(enc):
+    code, length = enc
+    ret = ''
+    for _ in range(length):
+        index = code & 3
+        code >>= 2
+        ret = decoding_lst[index] + ret
+    return ret
+
 def generateMers(size=4):
     """Return a list of mers
     """
