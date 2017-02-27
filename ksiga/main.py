@@ -203,6 +203,7 @@ def generate_distance_matrix(args):
     #    writeThis = bytes("{}{}".format(disStr, os.linesep), encoding="utf-8")
     #    outHandle.write(writeThis)
 
+    # Parallel version
     with Parallel(n_jobs=10, backend="threading") as pool:
         generator = ((i,j) for i, j in itertools.combinations(range(rowNum), r=2))
         chunks = grouper(100000, generator)
