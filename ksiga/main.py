@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+""" Main
+"""
 
 import argparse
 import sys
@@ -12,10 +14,9 @@ import numpy as np
 from sklearn.preprocessing import normalize
 from joblib import Parallel, delayed
 
+import ksiga.mmath as mmath
 from ksiga import logutil
 from ksiga import fsig
-
-DEFAULT_K = 13
 
 def openner(filename, **kwargs):
     """Try to return a sensible filehandle
@@ -80,7 +81,7 @@ def index(args):
 
     for filename in args.filenames:
         if not os.path.exists(filename):
-            # TODO: Warn?
+            # TODO: Warn or exit here.
             pass
 
     for filename in filenames:
@@ -146,12 +147,19 @@ def observe_feature_frequency(args):
 
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--file", required=True, help="")
+    parser.add_argument("filenames", nargs="+", help="file(s) of signature")
     parser.add_argument("-k", "--ksize", required=True, type=int)
     parser.add_argument("-w", "--wd", default=os.getcwd())
+    parser.add_argument("-o", "--output", required=True)
     args = parser.parse_args(args)
-    occF = fsig.calculate_obsff(args.file, args.ksize)
-    print(occF)
+
+    ksize = args.ksize
+    outputPrefix = args.output
+
+    prob, occ, kmerStr = fsig.calculate_obsff(args.filenames, ksize)
+    np.savetxt("{}.prb".format(outputPrefix), prob)
+    np.savetxt("{}.occ".format(outputPrefix), occ, fmt="%i")
+    np.savetxt("{}.kme".format(outputPrefix), kmerStr, fmt="%s")
 
 
 def generate_distance_matrix(args):
@@ -164,9 +172,7 @@ def generate_distance_matrix(args):
 
     """
     import ksiga.fsig as fsig
-    import ksiga.mmath as mmath
     import itertools
-    from ksiga.ksignature import KmerSignature
 
     parser = argparse.ArgumentParser()
     parser.add_argument("filenames", nargs="+", help="file(s) of signature")
@@ -174,7 +180,7 @@ def generate_distance_matrix(args):
     parser.add_argument("-o", "--output")
     args = parser.parse_args(args)
 
-    filesname = args.filenames
+    filenames = args.filenames
     ksize = args.ksize
     outF = args.output
 
@@ -189,7 +195,7 @@ def generate_distance_matrix(args):
             # TODO: Do something about this
             pass
 
-    csr_matrix = fsig.rebuild_sparse_matrix(args.filenames, args.ksize)
+    csr_matrix = fsig.rebuild_sparse_matrix(filenames, ksize)
     rowNum = csr_matrix.shape[0]
 
     csr_matrix_norm = normalize(csr_matrix, norm='l1', axis=1)
@@ -205,7 +211,7 @@ def generate_distance_matrix(args):
 
     # Parallel version
     with Parallel(n_jobs=10, backend="threading") as pool:
-        generator = ((i,j) for i, j in itertools.combinations(range(rowNum), r=2))
+        generator = ((i, j) for i, j in itertools.combinations(range(rowNum), r=2))
         chunks = grouper(100000, generator)
         result = pool(delayed(calculate_chunk)(chunk, csr_matrix_norm)
                       for chunk in chunks)
@@ -215,6 +221,8 @@ def generate_distance_matrix(args):
     sys.exit(0)
 
 def calculate_chunk(chunks, matrix):
+    """ Calculate js distance in chunk.
+    """
 
     results = []
     fchunks = filter(None, chunks)

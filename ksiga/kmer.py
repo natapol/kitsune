@@ -41,8 +41,8 @@ def encode(k):
         code += encoding_map[ch]
     return code, len(k)
 
-def decode(enc):
-    code, length = enc
+def decode(code, length):
+    #code, length = enc
     ret = ''
     for _ in range(length):
         index = code & 3

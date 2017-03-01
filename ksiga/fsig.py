@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-""" Store and calculate k-mer.
-    Also calculate various statistic of kmer (1).
+""" Store and calculate various statistic of kmer (1).
     (1) Viral Phylogenomics using an alignment-free method: A three step approach to dtermine optimal length of k-mer
 """
 
@@ -45,7 +44,6 @@ def calculate_relative_entropy(store, ksize):
     array1 = store.get_kmer(ksize-1)
     array2 = store.get_kmer(ksize-2)
 
-    genLoc0 = kmer.create_kmer_loc_fn(ksize)
     genLoc1 = kmer.create_kmer_loc_fn(ksize-1)
     genLoc2 = kmer.create_kmer_loc_fn(ksize-2)
 
@@ -57,7 +55,7 @@ def calculate_relative_entropy(store, ksize):
     # Calculate final normalization factor. Delegate the normalization to the last step (Arithmatric).
     # TODO: Collect everything and calculate in array base
     for (idxA, locL) in enumerate(array0.indices):
-        mer = kmer.decode((locL, ksize))
+        mer = kmer.decode(locL, ksize)
         merFront = mer[0:-1]
         merBack = mer[1:]
         merMiddle = mer[1:-1]
@@ -72,11 +70,11 @@ def calculate_relative_entropy(store, ksize):
 
         # For debugging. This shouldn't happend since we should quite when
         # the biggest kmer is not found.
-        if (idxF == array1.indices.shape[0]):
+        if idxF == array1.indices.shape[0]:
             raise IndexError("Left not found")
-        if (idxB == array1.indices.shape[0]):
+        if idxB == array1.indices.shape[0]:
             raise IndexError("Right not found")
-        if (idxM == array2.indices.shape[0]):
+        if idxM == array2.indices.shape[0]:
             raise IndexError("Middle not found")
 
         # All, Front, Back, Middle
@@ -118,7 +116,7 @@ def calculate_relative_entropy(store, ksize):
     # print(relativeEntropy)
     # print(relativeEntropy2)
 
-     
+
     return relativeEntropy
 
 
@@ -132,7 +130,6 @@ def calculate_average_common_feature(stores, ksize):
     Returns: TODO
 
     """
-    import itertools
 
     csr_matrix = rebuild_sparse_matrix(stores, ksize)
     rowNum = csr_matrix.shape[0]
@@ -140,9 +137,9 @@ def calculate_average_common_feature(stores, ksize):
     vals = []
     norm = csr_matrix.shape[0] - 1
 
-    for i in (range(rowNum)):
+    for i in range(rowNum):
         val = 0
-        for j in (range(rowNum)):
+        for j in range(rowNum):
             if i == j:
                 continue
             iRow = csr_matrix[i]
@@ -157,37 +154,62 @@ def calculate_average_common_feature(stores, ksize):
     return result
 
 
-    # for i, j in itertools.combinations(range(rowNum), r=2):
-        # iRow = csr_matrix[i]
-        # jRow = csr_matrix[j]
-        # # Find column (same kmer) that contain in both row. Good thing that we already sorted it.
-        # found = sortedsearch(iRow.indices, jRow.indices)
-        # counts.append(found.shape[0])
-
-    # return sum(counts) / norm
-
-
-def calculate_obsff(store, ksize):
-    """ Calculate an average common features from sparse matrix.
+def calculate_obsff(stores, ksize):
+    """ Calculate an observe and expect.
 
     Args:
-        store (TODO): TODO
+        stores (TODO): TODO
         ksize (TODO): TODO
 
     Returns: TODO
 
     """
-    store = KmerSignature(store)
-    # Sparse array of ONE row, so it has shape = (1, col)
-    array = store.get_kmer(ksize)
-    count = array.indices.shape[0]
+    csr_matrix = rebuild_sparse_matrix(stores, ksize)
+    # Probalbility that kmer exist.
+    norm = csr_matrix.sum()
+    prob = np.asarray(csr_matrix.sum(axis=0)).squeeze() / norm
 
-    expect = 4 ** ksize
-    return count / ksize
+    # How many genome they occur
+    csr_matrix.data = np.ones_like(csr_matrix.data)
+    occurence = np.asarray(csr_matrix.sum(axis=0)).squeeze()
+
+    # Kmer string
+    sites = np.unique(csr_matrix.indices)
+    fn = np.vectorize(kmer.decode)
+    kmerStr = fn(sites, ksize)
+
+    return (prob, occurence, kmerStr)
+
+def calculate_all_obsff(store):
+    """ Calculate an observe and expect for all kmer.
+
+    Args:
+        store (TODO): TODO
+
+    Returns: TODO
+
+    """
+    store = KmerSignature(store)
+    folderList = store.list_all_kmer()
+    kmerList = [int(i) for i in folderList]
+
+    results = []
+
+    for ksize in sorted(kmerList):
+        array = store.get_kmer(ksize)
+        count = array.indices.shape[0]
+        results.append({
+            "kmer": ksize,
+            "obs": count,
+            "exp": 4 ** ksize
+            })
+
+    return results
 
 
 def rebuild_sparse_matrix(stores, ksize):
-    """ Rebuild sparse matrix from list of stores
+    """ Rebuild sparse matrix from list of stores. The implementation
+        is obvious (if not, read csr_matrix doc on scipy).
 
     Args:
         stores (TODO): TODO
@@ -197,7 +219,7 @@ def rebuild_sparse_matrix(stores, ksize):
 
     """
 
-    # I don't know why scipy loves to convert sparse matrix to COO first....
+    # Initialize data for sparse matrix.
     data = []
     indices = []
     indptr = []

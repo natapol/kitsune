@@ -68,9 +68,9 @@ class KmerSignature(object):
         return access in self._pointer
 
 
-    def list_all(self):
-        """ List all index here
-        Returns: TODO
+    def list_all_kmer(self):
+        """ List all kmer
+        Returns: list of kmer
 
         """
-        pass
+        return list(self._pointer["kmer"])
