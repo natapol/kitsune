@@ -146,6 +146,8 @@ def observe_feature_frequency(args):
     Returns: TODO
 
     """
+    import pandas as pd
+
     parser = argparse.ArgumentParser()
     parser.add_argument("filenames", nargs="+", help="file(s) of signature")
     parser.add_argument("-k", "--ksize", required=True, type=int)
@@ -154,12 +156,12 @@ def observe_feature_frequency(args):
     args = parser.parse_args(args)
 
     ksize = args.ksize
-    outputPrefix = args.output
+    output = args.output
 
     prob, occ, kmerStr = fsig.calculate_obsff(args.filenames, ksize)
-    np.savetxt("{}.prb".format(outputPrefix), prob)
-    np.savetxt("{}.occ".format(outputPrefix), occ, fmt="%i")
-    np.savetxt("{}.kme".format(outputPrefix), kmerStr, fmt="%s")
+    df = pd.DataFrame({"kmer": kmerStr, "prob": prob, "occ": occ})
+    df.set_index("kmer", inplace=True)
+    df.to_csv(output, sep="\t")
 
 
 def generate_distance_matrix(args):
