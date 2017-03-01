@@ -168,10 +168,14 @@ def calculate_obsff(stores, ksize):
     # Probalbility that kmer exist.
     norm = csr_matrix.sum()
     prob = np.asarray(csr_matrix.sum(axis=0)).squeeze() / norm
+    # Remove zero
+    prob = prob[np.nonzero(prob)]
 
     # How many genome they occur
     csr_matrix.data = np.ones_like(csr_matrix.data)
     occurence = np.asarray(csr_matrix.sum(axis=0)).squeeze()
+    # Remove zero
+    occurence = occurence[np.nonzero(occurence)]
 
     # Kmer string
     sites = np.unique(csr_matrix.indices)
@@ -179,32 +183,6 @@ def calculate_obsff(stores, ksize):
     kmerStr = fn(sites, ksize)
 
     return (prob, occurence, kmerStr)
-
-def calculate_all_obsff(store):
-    """ Calculate an observe and expect for all kmer.
-
-    Args:
-        store (TODO): TODO
-
-    Returns: TODO
-
-    """
-    store = KmerSignature(store)
-    folderList = store.list_all_kmer()
-    kmerList = [int(i) for i in folderList]
-
-    results = []
-
-    for ksize in sorted(kmerList):
-        array = store.get_kmer(ksize)
-        count = array.indices.shape[0]
-        results.append({
-            "kmer": ksize,
-            "obs": count,
-            "exp": 4 ** ksize
-            })
-
-    return results
 
 
 def rebuild_sparse_matrix(stores, ksize):
