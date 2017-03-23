@@ -8,13 +8,10 @@ import sys
 import os
 import gzip
 import pathlib
-from itertools import zip_longest
 
 import numpy as np
 from sklearn.preprocessing import normalize
-from joblib import Parallel, delayed
 
-import ksiga.mmath as mmath
 from ksiga import logutil
 from ksiga import fsig
 
@@ -174,17 +171,20 @@ def generate_distance_matrix(args):
 
     """
     import ksiga.fsig as fsig
-    import itertools
+    from ksiga import distance
 
     parser = argparse.ArgumentParser()
     parser.add_argument("filenames", nargs="+", help="file(s) of signature")
     parser.add_argument("-k", "--ksize", required=True, type=int)
     parser.add_argument("-o", "--output")
+    parser.add_argument("-t", "--n_thread", type=int, default=1)
+    parser.add_argument("-d", "--distance", default="euclid")
     args = parser.parse_args(args)
 
     filenames = args.filenames
     ksize = args.ksize
     outF = args.output
+    n_thread = args.n_thread
 
     if outF is None:
         outHandle = sys.stdout.buffer
@@ -200,39 +200,15 @@ def generate_distance_matrix(args):
     csr_matrix = fsig.rebuild_sparse_matrix(filenames, ksize)
     rowNum = csr_matrix.shape[0]
 
+    fn = distance.DISTANCE_FUNCTION.get(args.distance, n_thread)
+
+    if fn is None:
+        logutil.notify("Invalid distance function")
+        sys.exit(1)
+
     csr_matrix_norm = normalize(csr_matrix, norm='l1', axis=1)
 
-    # TODO: Non-paralel version
-    #for i, j in itertools.combinations(range(rowNum), r=2):
-    #    iRow = csr_matrix_norm[i]
-    #    jRow = csr_matrix_norm[j]
-    #    distance = mmath.sparse_js_distance(iRow, jRow)
-    #    disStr = str(distance)
-    #    writeThis = bytes("{}{}".format(disStr, os.linesep), encoding="utf-8")
-    #    outHandle.write(writeThis)
-
-    # Parallel version
-    with Parallel(n_jobs=10, backend="threading") as pool:
-        generator = ((i, j) for i, j in itertools.combinations(range(rowNum), r=2))
-        chunks = grouper(100000, generator)
-        result = pool(delayed(calculate_chunk)(chunk, csr_matrix_norm)
-                      for chunk in chunks)
-
-    np.savetxt(outHandle, np.concatenate(result))
+    result = fn(csr_matrix_norm)
+    np.savetxt(outHandle, result)
     logutil.notify("Finish")
     sys.exit(0)
-
-def calculate_chunk(chunks, matrix):
-    """ Calculate js distance in chunk.
-    """
-
-    results = []
-    fchunks = filter(None, chunks)
-    for i, j in fchunks:
-        results.append(mmath.sparse_js_distance(matrix[i], matrix[j]))
-    return results
-
-
-def grouper(n, iterable, padvalue=None):
-    "grouper(3, 'abcdefg', 'x') --> ('a','b','c'), ('d','e','f'), ('g','x','x')"
-    return zip_longest(*[iter(iterable)]*n, fillvalue=padvalue)

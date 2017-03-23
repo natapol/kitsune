@@ -32,7 +32,9 @@ SETUPARG = {
         'install_requires': ["numpy >= 1.1.0",
                              "scipy>=0.17.0",
                              "biopython>=1.68",
-                             "h5py==2.6.0"
+                             "h5py==2.6.0",
+                             "scikit-learn>=0.18.1",
+                             "joblib"
                              ],
         'extras_require': {
             'test': ['pytest', 'pytest-cov']
