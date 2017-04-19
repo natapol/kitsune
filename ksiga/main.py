@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-""" Main
+""" Main entry.
+
+
 """
 
 import argparse
@@ -14,6 +16,7 @@ from sklearn.preprocessing import normalize
 
 from ksiga import logutil
 from ksiga import fsig
+
 
 def openner(filename, **kwargs):
     """Try to return a sensible filehandle
@@ -134,6 +137,7 @@ def average_common_feature(args):
 
     np.savetxt(outHandle, acf)
 
+
 def observe_feature_frequency(args):
     """ Calculate an observe feature frequency
 
@@ -181,6 +185,13 @@ def generate_distance_matrix(args):
     parser.add_argument("-d", "--distance", default="euclid")
     args = parser.parse_args(args)
 
+    fn = distance.DISTANCE_FUNCTION.get(args.distance, None)
+
+    if fn is None:
+        allowDistance = list(distance.DISTANCE_FUNCTION.keys())
+        print(USAGE)
+        exit(1)
+
     filenames = args.filenames
     ksize = args.ksize
     outF = args.output
@@ -200,15 +211,9 @@ def generate_distance_matrix(args):
     csr_matrix = fsig.rebuild_sparse_matrix(filenames, ksize)
     rowNum = csr_matrix.shape[0]
 
-    fn = distance.DISTANCE_FUNCTION.get(args.distance, n_thread)
-
-    if fn is None:
-        logutil.notify("Invalid distance function")
-        sys.exit(1)
-
     csr_matrix_norm = normalize(csr_matrix, norm='l1', axis=1)
 
     result = fn(csr_matrix_norm)
     np.savetxt(outHandle, result)
-    logutil.notify("Finish")
+    logutil.notify("Result is written to {}".format(outF))
     sys.exit(0)

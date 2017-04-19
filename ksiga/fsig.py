@@ -13,23 +13,6 @@ import ksiga.sparse_util as su
 from ksiga import kmer
 from ksiga import logutil
 
-def sortedsearch(npArray, vals):
-    """ Search for sorted array
-        Unlike numpy's implementation, this return an vals that found
-
-    Args:
-        npArray (TODO): TODO
-        vals (TODO): TODO
-
-    Returns: numpy array of vals that found in npArray
-
-    """
-    idx = np.searchsorted(npArray, vals)
-    mask_idx = idx == npArray.shape[0]
-    idx[mask_idx] = npArray.shape[0] - 1
-    valsIndex = npArray[idx] == vals
-    return vals[valsIndex]
-
 
 def calculate_relative_entropy(store, ksize):
     """ Calculate the relative entropy (obs vs expected)
@@ -38,7 +21,6 @@ def calculate_relative_entropy(store, ksize):
     """
     # Check if exists
     store = KmerSignature(store)
-
     # Sparse array of ONE row, so it has shape = (1, col)
     array0 = store.get_kmer(ksize)
     array1 = store.get_kmer(ksize-1)
@@ -51,7 +33,6 @@ def calculate_relative_entropy(store, ksize):
     FRes = []
     BRes = []
     MRes = []
-
     # Calculate final normalization factor. Delegate the normalization to the last step (Arithmatric).
     # TODO: Collect everything and calculate in array base
     for (idxA, locL) in enumerate(array0.indices):
@@ -59,7 +40,6 @@ def calculate_relative_entropy(store, ksize):
         merFront = mer[0:-1]
         merBack = mer[1:]
         merMiddle = mer[1:-1]
-
         # Find location of left mer, right mer, and middle mer
         locF = genLoc1(merFront)
         locB = genLoc1(merBack)
@@ -67,7 +47,6 @@ def calculate_relative_entropy(store, ksize):
         idxF = su.has_indices(array1, locF)
         idxB = su.has_indices(array1, locB)
         idxM = su.has_indices(array2, locM)
-
         # For debugging. This shouldn't happend since we should quite when
         # the biggest kmer is not found.
         if idxF == array1.indices.shape[0]:
@@ -76,7 +55,6 @@ def calculate_relative_entropy(store, ksize):
             raise IndexError("Right not found")
         if idxM == array2.indices.shape[0]:
             raise IndexError("Middle not found")
-
         # All, Front, Back, Middle
         countA = array0.data[idxA]
         countF = array1.data[idxF]
@@ -88,12 +66,10 @@ def calculate_relative_entropy(store, ksize):
         BRes.append(countB)
         MRes.append(countM)
 
-    # Calculate.
     ARes = np.array(ARes)  # Obs
     FRes = np.array(FRes)  # Front
     BRes = np.array(BRes)  # Back
     MRes = np.array(MRes)  # Middle
-
     # Factor version
     norm0 = array0.data.sum()
     norm1 = array1.data.sum()
@@ -105,17 +81,14 @@ def calculate_relative_entropy(store, ksize):
     lhs = ARes / norm0
     relativeEntropy = (lhs * rhs).sum()
 
-    # Full version, speed is roughly the same with above?
+    ## Version which follow a formular more closely.
+    ## Roughly the same speed with the reduce version above.
     # norm0 = array0.data.sum()
     # norm1 = array1.data.sum()
     # norm2 = array2.data.sum()
     # expectation = (FRes/norm1) * (BRes/norm1) / (MRes/norm2)
     # observation = ARes / norm0
-    # relativeEntropy2 = (observation * np.log2(observation/expectation)).sum()
-
-    # print(relativeEntropy)
-    # print(relativeEntropy2)
-
+    # relativeEntropy = (observation * np.log2(observation/expectation)).sum()
 
     return relativeEntropy
 
@@ -144,7 +117,7 @@ def calculate_average_common_feature(stores, ksize):
                 continue
             iRow = csr_matrix[i]
             jRow = csr_matrix[j]
-            found = sortedsearch(iRow.indices, jRow.indices)
+            found = su.sortedsearch(iRow.indices, jRow.indices)
             val += found.shape[0]
 
         vals.append(val)
@@ -170,13 +143,11 @@ def calculate_obsff(stores, ksize):
     prob = np.asarray(csr_matrix.sum(axis=0)).squeeze() / norm
     # Remove zero
     prob = prob[np.nonzero(prob)]
-
     # How many genome they occur
     csr_matrix.data = np.ones_like(csr_matrix.data)
     occurence = np.asarray(csr_matrix.sum(axis=0)).squeeze()
     # Remove zero
     occurence = occurence[np.nonzero(occurence)]
-
     # Kmer string
     sites = np.unique(csr_matrix.indices)
     fn = np.vectorize(kmer.decode)
@@ -196,8 +167,7 @@ def rebuild_sparse_matrix(stores, ksize):
     Returns: TODO
 
     """
-
-    # Initialize data for sparse matrix.
+    # Initialize list for building a sparse matrix.
     data = []
     indices = []
     indptr = []

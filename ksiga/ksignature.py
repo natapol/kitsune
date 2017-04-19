@@ -5,11 +5,12 @@ import os
 import h5py
 import scipy.sparse as sps
 
+
 class KmerSignature(object):
 
-    """Store and represent signature of kmer. Currently is a wrapper around HDF5 format"""
+    """Store and represent signature of kmer. It is a wrapper around HDF5 format, where kmer is store"""
 
-    # Folder, Data, Indices and Shape
+    # Store sparse matrix.
     KMER_TP = "/kmer/{size}"
     KMERD_TP = "/kmer/{size}/data"
     KMERI_TP = "/kmer/{size}/indices"
@@ -48,11 +49,9 @@ class KmerSignature(object):
         indices = self._pointer[self.KMERI_TP.format(size=ksize)]
         data = self._pointer[self.KMERD_TP.format(size=ksize)]
         shape = self._pointer[self.KMERS_TP.format(size=ksize)]
-
-        # Obvious, but just in case.
+        # It is trivial, but check this just in case.
         assert indices.shape == data.shape
         return sps.csr_matrix((data, indices, [0, data.shape[0]]), shape=shape)
-
 
     def has_kmer(self, ksize):
         """TODO: Docstring for has_kmer.
@@ -66,7 +65,6 @@ class KmerSignature(object):
 
         access = self.KMER_TP.format(size=ksize)
         return access in self._pointer
-
 
     def list_all_kmer(self):
         """ List all kmer

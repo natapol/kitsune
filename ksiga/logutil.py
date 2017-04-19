@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-""" Log-utility
+""" Provide utility functions relate to logging.
 """
 
 import sys
 import os
 
-QUITE = False
+QUIET = False
 handle = sys.stderr
 
 
@@ -22,6 +22,7 @@ def warn(msg):
     handle.write(msg)
     handle.write(os.linesep)
 
+
 def notify(msg):
     """TODO: Docstring for warn.
 
@@ -31,8 +32,10 @@ def notify(msg):
     Returns: TODO
 
     """
-    if not QUITE:
-        if type(msg) is not str:
-            msg = str(msg)
-        handle.write(msg)
-        handle.write(os.linesep)
+    if QUIET:
+        return
+
+    if type(msg) is not str:
+        msg = str(msg)
+    handle.write(msg)
+    handle.write(os.linesep)

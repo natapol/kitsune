@@ -19,6 +19,7 @@ KMER_DIC = {"A":1, "C":2, "G":3, "T":4}
 REGEX = re.compile("[^ATGC]")
 id_fn = lambda x: x
 
+
 def kmer_location(kmer):
     """ Calculate kmer location to store in array
     """
@@ -31,24 +32,25 @@ def kmer_location(kmer):
 
     return code
 
-encoding_map = KMER_DIC
-decoding_lst = KMER_ARR
 
 def encode(k):
+    encoding_map = KMER_DIC
     code = 0
     for ch in k:
         code *= 4
         code += encoding_map[ch]
     return code, len(k)
 
+
 def decode(code, length):
-    #code, length = enc
+    decoding_lst = KMER_ARR
     ret = ''
     for _ in range(length):
         index = code & 3
         code >>= 2
         ret = decoding_lst[index] + ret
     return ret
+
 
 def generateMers(size=4):
     """Return a list of mers
@@ -57,6 +59,7 @@ def generateMers(size=4):
     it = itertools.product(kmerList, repeat=size)
     for mers in it:
         yield "".join(mers)
+
 
 def create_kmer_loc_fn(size):
     """ Hash location of kmer for specific size.
@@ -68,8 +71,6 @@ def create_kmer_loc_fn(size):
 
     return wrapped
 
-# Example
-kmer_13_location = create_kmer_loc_fn(13)
         
 def kmer_count(seq, ksize, keyfn=id_fn):
     """ Calculate kmer and location to store
@@ -88,7 +89,12 @@ def kmer_count(seq, ksize, keyfn=id_fn):
 
     return DICT
 
+
+#
 # Conveniant function
+#
+
+
 def kmer_count_fasta(f, ksize=13, keyfn=id_fn):
     mainCounter = Counter()
     handle = SeqIO.parse(f, "fasta")
@@ -96,6 +102,7 @@ def kmer_count_fasta(f, ksize=13, keyfn=id_fn):
         seq = str(seq.seq)
         mainCounter += kmer_count(seq, ksize, keyfn)
     return mainCounter
+
 
 def build_csr_matrix_from_fasta(fh, ksize):
     """ Build a `row` of csr matrix from fasta file.

@@ -8,6 +8,7 @@ from scipy.misc import logsumexp
 
 import ksiga.sparse_util as su
 
+
 def shannon_entropy(p):
     """Calculates shannon entropy in bits.
 
@@ -158,35 +159,6 @@ def js_distance(p, q):
     return js_dist
 
 
-"""
-def kde_entropy(x, bandwidth=None, folds=5):
-    # lower fold number if few mutations
-    n = len(x)
-    if n < folds:
-        folds = n
-
-    # check if bandwidth selection is necessary
-    if bandwidth is None:
-        grid = GridSearchCV(KernelDensity(),
-                            {'bandwidth': np.array([3.0, 5.0, 10.0, 15.0,
-                                                    20.0, 25.0, 40.0, 50.0])},
-                            cv=folds) # 5-fold cross-validation
-        grid.fit(x[:, None])
-        bandwidth = grid.best_params_['bandwidth']
-
-    # perform calculations
-    kde_skl = KernelDensity(bandwidth=bandwidth)
-    kde_skl.fit(x[:, np.newaxis])
-    log_pdf = kde_skl.score_samples(x[:, np.newaxis])  # return log-likelihood
-    log_sum = logsumexp(log_pdf)
-    norm_log_pdf = log_pdf - log_sum
-    ent = shannon_entropy(np.exp(norm_log_pdf)) / float(np.log2(n))
-    return ent, bandwidth
-"""
-
-
-""" Sparse version
-"""
 def sparse_kl_divergence(p, q):
     """Compute the Kullback-Leibler (KL) divergence on sparse matrix.
 

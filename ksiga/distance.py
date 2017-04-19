@@ -1,10 +1,12 @@
-# Module that calculate distance matrix.
-# The distance matrix is calculate in column major lower triangle
-#
-# [0 1 2 3]
-# [1 0 4 5] -> [0 1 2 3 4 5 6]
-# [2 4 0 6]
-# [3 5 6 0]
+# -*- coding: utf-8 -*-
+
+""" Collection of distance calculation function
+ The distance matrix return as a distance array which constructs from column major lower triangle
+ [0 1 2 3]
+ [1 0 4 5] -> [0 1 2 3 4 5 6]
+ [2 4 0 6]
+ [3 5 6 0]
+"""
 
 import itertools
 from itertools import zip_longest
@@ -22,7 +24,7 @@ def jensen_distance(m, n_thread=2):
     Args:
         sm (matrix/sparse matrix): A normalize matrix.
 
-    Returns: TODO
+    Returns: distance array 
 
     """
     rowNum = m.shape[0]
@@ -34,25 +36,21 @@ def jensen_distance(m, n_thread=2):
             jRow = m[j]
             distance = mmath.sparse_js_distance(iRow, jRow)
             result.append(distance)
-            # disStr = str(distance)
-            # writeThis = bytes("{}{}".format(disStr, os.linesep), encoding="utf-8")
-            # outHandle.write(writeThis)
 
         result = np.array(result)
-
-    # Parallel version
-    else:
+    else: # Parallel version
         with Parallel(n_jobs=n_thread, backend="threading") as pool:
             generator = ((i, j) for i, j in itertools.combinations(range(rowNum), r=2))
-            chunks = grouper(100000, generator)
-            result = pool(delayed(calculate_chunk)(chunk, m)
+            chunks = _grouper(100000, generator)
+            result = pool(delayed(_calculate_chunk)(chunk, m)
                         for chunk in chunks)
 
     return np.squeeze(result)
 
-
-# Helper function
-def calculate_chunk(chunks, matrix):
+#
+# Helper functions
+#
+def _calculate_chunk(chunks, matrix):
     """ Calculate js distance in chunk.
     """
 
@@ -63,11 +61,13 @@ def calculate_chunk(chunks, matrix):
     return results
 
 
-def grouper(n, iterable, padvalue=None):
-    "grouper(3, 'abcdefg', 'x') --> ('a','b','c'), ('d','e','f'), ('g','x','x')"
+def _grouper(n, iterable, padvalue=None):
+    "_grouper(3, 'abcdefg', 'x') --> ('a','b','c'), ('d','e','f'), ('g','x','x')"
     return zip_longest(*[iter(iterable)]*n, fillvalue=padvalue)
 
-# End of helper function
+#
+# End of Helper functions
+#
 
 
 def cosine_distance(m, n_thread=1):
@@ -88,7 +88,7 @@ def euclidian_distance(m, n_thread=1):
     """Calculate distance matrix using euclidian distance
 
     Args:
-        m (TODO): TODO
+        sm (matrix/sparse matrix): A normalized matrix.
 
     Returns: TODO
 
@@ -98,8 +98,13 @@ def euclidian_distance(m, n_thread=1):
     return da
 
 def jaccard_distance(csr, n_thread=1, epsilon=1):
-    """ Calculate jaccard distance 
-http://stackoverflow.com/questions/32805916/compute-jaccard-distances-on-sparse-matrix
+    """Calculate distance matrix using jaccard distance
+
+    Args:
+        sm (matrix/sparse matrix): A normalized matrix.
+
+    Returns: TODO
+
     """
     import scipy.sparse as sp
     assert(0 < epsilon <= 1)
@@ -123,6 +128,7 @@ http://stackoverflow.com/questions/32805916/compute-jaccard-distances-on-sparse-
     dm = sp.csr_matrix((data, indices, indptr), intrsct.shape).toarray()
     da = squareform(dm, checks=False)
     return da
+
 
 DISTANCE_FUNCTION = {
         "jensen" : jensen_distance,
