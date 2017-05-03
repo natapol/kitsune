@@ -170,7 +170,7 @@ def calculate_uniq_mer(stores, ksize):
     unique, count = np.unique(csr_matrix.indices, return_counts=True)
 
     allPossible = unique.shape[0]
-    numberOfUnique = np.sum(np.where(count == 1)[0])
+    numberOfUnique = np.where(count == 1)[0].shape[0]
 
     return (allPossible, numberOfUnique)
 
