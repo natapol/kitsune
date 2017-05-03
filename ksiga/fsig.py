@@ -117,7 +117,7 @@ def calculate_average_common_feature(stores, ksize):
                 continue
             iRow = csr_matrix[i]
             jRow = csr_matrix[j]
-            found = su.sortedsearch(iRow.indices, jRow.indices)
+            found = su.searchsorted(iRow.indices, jRow.indices)
             val += found.shape[0]
 
         vals.append(val)
@@ -154,6 +154,25 @@ def calculate_obsff(stores, ksize):
     kmerStr = fn(sites, ksize)
 
     return (prob, occurence, kmerStr)
+
+
+def calculate_uniq_mer(stores, ksize):
+    """ Calculate an observe and expect.
+
+    Args:
+        stores (TODO): TODO
+        ksize (TODO): TODO
+
+    Returns: TODO
+
+    """
+    csr_matrix = rebuild_sparse_matrix(stores, ksize)
+    unique, count = np.unique(csr_matrix.indices, return_counts=True)
+
+    allPossible = unique.shape[0]
+    numberOfUnique = np.sum(np.where(count == 1)[0])
+
+    return (allPossible, numberOfUnique)
 
 
 def rebuild_sparse_matrix(stores, ksize):

@@ -38,7 +38,8 @@ def main():
                 "relent": relative_entropy,
                 "acf":average_common_feature,
                 "off": observe_feature_frequency,
-                "dmatrix": generate_distance_matrix}
+                "dmatrix": generate_distance_matrix,
+                "uniq": generate_uniq_mer}
 
     parser = argparse.ArgumentParser(description="Signature for virus",
                                      usage="""ksiga <command> [<args>]
@@ -163,6 +164,37 @@ def observe_feature_frequency(args):
     df = pd.DataFrame({"kmer": kmerStr, "prob": prob, "occ": occ})
     df.set_index("kmer", inplace=True)
     df.to_csv(output, sep="\t")
+
+def generate_uniq_mer(args):
+    """ Calculate an observe feature frequency
+
+    Args:
+        args (TODO): TODO
+
+    Returns: TODO
+
+    """
+    import pandas as pd
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("filenames", nargs="+", help="file(s) of signature")
+    parser.add_argument("-k", "--ksize", required=True, type=int)
+    parser.add_argument("-w", "--wd", default=os.getcwd())
+    parser.add_argument("-o", "--output", required=True)
+    args = parser.parse_args(args)
+
+    ksize = args.ksize
+    output = args.output
+
+    allPossible, uniq = fsig.calculate_uniq_mer(args.filenames, ksize)
+
+    outF = args.output
+    if outF is None:
+        outHandle = sys.stdout.buffer
+    else:
+        outHandle = open(outF, "wb")  # wb for numpy write
+
+    np.savetxt(outHandle, [allPossible, uniq], fmt="%i")
 
 
 def generate_distance_matrix(args):
