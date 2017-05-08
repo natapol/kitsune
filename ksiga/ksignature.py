@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
+""" Store and return k-mer
+"""
+
 import os
 
+import numpy as np
 import h5py
 import scipy.sparse as sps
 
@@ -10,7 +14,7 @@ class KmerSignature(object):
 
     """Store and represent signature of kmer. It is a wrapper around HDF5 format, where kmer is store"""
 
-    # Store sparse matrix.
+    # How to store sparse matrix.
     KMER_TP = "/kmer/{size}"
     KMERD_TP = "/kmer/{size}/data"
     KMERI_TP = "/kmer/{size}/indices"
@@ -20,14 +24,14 @@ class KmerSignature(object):
         """TODO: Docstring for function.
 
         Args:
-            pointer (folder): TODO
+            pointer (str): file name to store index in.
 
         Returns: TODO
 
         """
 
         if not os.path.exists(pointer):
-            raise FileNotFoundError("Sumting wong")
+            raise FileNotFoundError("Cannot find an index file")
 
         self._pointer = h5py.File(pointer, "r")
 
@@ -44,7 +48,7 @@ class KmerSignature(object):
         """
 
         if not self.has_kmer(ksize):
-            raise IndexError("No kmer")
+            raise IndexError("K-mer size = {}, have not yet index.".format(ksize))
 
         indices = self._pointer[self.KMERI_TP.format(size=ksize)]
         data = self._pointer[self.KMERD_TP.format(size=ksize)]
@@ -54,10 +58,10 @@ class KmerSignature(object):
         return sps.csr_matrix((data, indices, [0, data.shape[0]]), shape=shape)
 
     def has_kmer(self, ksize):
-        """TODO: Docstring for has_kmer.
+        """TODO: Check if k-mer of length is indexed.
 
         Args:
-            ksize (TODO): TODO
+            ksize (int): TODO
 
         Returns: TODO
 
@@ -72,3 +76,50 @@ class KmerSignature(object):
 
         """
         return list(self._pointer["kmer"])
+
+    @classmethod
+    def fromfilename(cls, filename):
+        """ Initialize data from filename"""
+        return cls(filename)
+        
+
+    @classmethod
+    def fromstore(cls, store):
+        """ Initialize data from filename"""
+        return store
+
+
+def rebuild_sparse_matrix(stores, ksize):
+    """ Rebuild sparse matrix from list of stores. The implementation
+        is obvious (if not, read csr_matrix doc on scipy).
+
+    Args:
+        stores (TODO): TODO
+        ksize (int): Size of kmer to calculate
+
+    Returns: TODO
+
+    """
+    # Initialize list for building a sparse matrix.
+    data = []
+    indices = []
+    indptr = []
+
+    indptr.append(0)
+
+    for store in stores:
+        array = KmerSignature(store).get_kmer(ksize)
+        data.append(array.data)
+        indices.append(array.indices)
+        indptr.append(indptr[-1] + array.data.shape[0])
+
+    data = np.concatenate(data)
+    indices = np.concatenate(indices)
+
+    rowNum = len(stores)
+    colNum = 4 ** ksize
+    shape = (rowNum, colNum)
+
+    return sps.csr_matrix((data, indices, indptr), shape=shape)
+
+

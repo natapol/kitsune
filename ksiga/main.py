@@ -36,8 +36,10 @@ def openner(filename, **kwargs):
 def main():
     commands = {"index": index,
                 "relent": relative_entropy,
-                "acf":average_common_feature,
-                "off": observe_feature_frequency,
+                "cre_kmer": cumulative_relative_entropy,
+                "acf": average_common_feature,
+                "acf_kmer": acf_kmer,
+                "ofc": observe_feature_frequency,
                 "dmatrix": generate_distance_matrix,
                 "uniq": generate_uniq_mer}
 
@@ -47,8 +49,9 @@ def main():
 Commands can be:
 index <filenames>                     Compute k-mer.
 relent <filename.sig>                 Compute relative entropy.
+cre <filename.sig>                    Compute cumulative relative entropy.
 acf <filenames.sig>                   Compute average number of common feature between signatures.
-off <filenames.sig>                   Compute observed feature frequencies.
+ofc <filenames.sig>                   Compute observed feature frequencies.
 dmatrix <filenames.sig>               Compute distance matrix.
 """)
     parser.add_argument('command')
@@ -85,6 +88,13 @@ def index(args):
             # TODO: Warn or exit here.
             pass
 
+    if not os.path.isdir(wd):  #  Check for output folder
+        try:
+            os.makedirs(wd)
+        except FileExistsError as err:
+            logutil.notify("Filename is already exists.")
+            exit(1)
+
     for filename in filenames:
         # Clean folder name from file
         basename = pathlib.Path(filename).name
@@ -94,7 +104,7 @@ def index(args):
 
 
 def relative_entropy(args):
-    """ Calculate relative entropy of
+    """ Calculate relative entropy of genome.
 
     Args:
         args (TODO): TODO
@@ -112,9 +122,8 @@ def relative_entropy(args):
     print(relEntropy)
 
 
-def average_common_feature(args):
-    """ Calculate an average number of common feature.
-        aka, k-mer exist in both sample.
+def cumulative_relative_entropy(args):
+    """ Calculate optimal k-mer through CRE value.
 
     Args:
         args (TODO): TODO
@@ -122,7 +131,34 @@ def average_common_feature(args):
     Returns: TODO
 
     """
-    parser = argparse.ArgumentParser()
+    desc = "Calculate cumulative relative entropy of all genomes"
+    parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument("filenames", nargs="+", help="file(s) of signature")
+    parser.add_argument("-ks", "--kfrom", required=True, type=int, help="Calculate from k-mer")
+    parser.add_argument("-ke", "--kend", required=True, type=int, help="last k-mer")
+    parser.add_argument("-o", "--output")
+    args = parser.parse_args(args)
+
+    filenames = args.filenames
+    kmerStart = args.kfrom
+    kmerEnd = args.kend
+
+    cre, kmer = fsig.calculate_cre(filenames[0], kmerStart, kmerEnd)
+    print(kmer)
+
+
+def average_common_feature(args):
+    """ Calculate an average number of common feature pairwise
+        between one genome against others
+
+    Args:
+        args (TODO): TODO
+
+    Returns: TODO
+
+    """
+    desc = "Calculate average number of common feature"
+    parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("filenames", nargs="+", help="file(s) of signature")
     parser.add_argument("-k", "--ksize", required=True, type=int)
     parser.add_argument("-o", "--output")
@@ -137,6 +173,39 @@ def average_common_feature(args):
     acf = fsig.calculate_average_common_feature(args.filenames, args.ksize)
 
     np.savetxt(outHandle, acf)
+
+
+def acf_kmer(args):
+    """ Calculate an average number of common feature pairwise
+        between one genome against others
+
+    Args:
+        args (TODO): TODO
+
+    Returns: TODO
+
+    """
+    desc = "Calculate average number of common feature"
+    parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument("filenames", nargs="+", help="file(s) of signature")
+    parser.add_argument("-ks", "--kfrom", required=True, type=int, help="Calculate from k-mer")
+    parser.add_argument("-ke", "--kend", required=True, type=int, help="last k-mer")
+    parser.add_argument("-o", "--output")
+    args = parser.parse_args(args)
+
+    filenames = args.filenames
+    outF = args.output
+    kmerStart = args.kfrom
+    kmerEnd = args.kend
+
+    if outF is None:
+        outHandle = sys.stdout.buffer
+    else:
+        outHandle = open(outF, "wb")  # wb for numpy write
+
+    acf = fsig.calculate_acf(filenames, kmerStart, kmerEnd)
+
+    # np.savetxt(outHandle, acf)
 
 
 def observe_feature_frequency(args):
@@ -174,7 +243,6 @@ def generate_uniq_mer(args):
     Returns: TODO
 
     """
-    import pandas as pd
 
     parser = argparse.ArgumentParser()
     parser.add_argument("filenames", nargs="+", help="file(s) of signature")

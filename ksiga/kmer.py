@@ -73,10 +73,12 @@ def create_kmer_loc_fn(size):
 
         
 def kmer_count(seq, ksize, keyfn=id_fn):
-    """ Calculate kmer and location to store
+    """ Calculate kmer and store to a dictionary.
 
     Args:
-        arg1 (TODO): TODO
+        seq (string): TODO
+        ksize (int): TODO
+        keyfn (func): TODO
 
     Returns: TODO
 
