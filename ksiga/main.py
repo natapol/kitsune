@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-""" Main entry.
-
-
+""" Main entry of the script.
 """
 
 import argparse
@@ -22,7 +20,7 @@ def openner(filename, **kwargs):
     """Try to return a sensible filehandle
 
     Args:
-        arg1 (TODO): TODO
+        filename (string): name of a file. Absolute/Relative path should work.
 
     Returns: TODO
 
@@ -36,22 +34,26 @@ def openner(filename, **kwargs):
 def main():
     commands = {"index": index,
                 "relent": relative_entropy,
-                "cre_kmer": cumulative_relative_entropy,
+                "cre_kmer": cre_kmer,
                 "acf": average_common_feature,
                 "acf_kmer": acf_kmer,
                 "ofc": observe_feature_frequency,
-                "dmatrix": generate_distance_matrix,
-                "uniq": generate_uniq_mer}
+                "ofc_kmer": ofc_kmer,
+                "dmatrix": generate_distance_matrix
+                } 
 
     parser = argparse.ArgumentParser(description="Signature for virus",
                                      usage="""ksiga <command> [<args>]
 
 Commands can be:
 index <filenames>                     Compute k-mer.
-relent <filename.sig>                 Compute relative entropy.
+cre_kmer <filename.sig>               Compute optimal k-mer from CRE.
+acf_kmer <filename.sig>               Compute optimal k-mer from ACF.
+ofc_kmer <filename.sig>               Compute optimal k-mer from OFC.
 cre <filename.sig>                    Compute cumulative relative entropy.
 acf <filenames.sig>                   Compute average number of common feature between signatures.
 ofc <filenames.sig>                   Compute observed feature frequencies.
+relent <filename.sig>                 Compute relative entropy.
 dmatrix <filenames.sig>               Compute distance matrix.
 """)
     parser.add_argument('command')
@@ -91,7 +93,7 @@ def index(args):
     if not os.path.isdir(wd):  #  Check for output folder
         try:
             os.makedirs(wd)
-        except FileExistsError as err:
+        except FileExistsError:
             logutil.notify("Filename is already exists.")
             exit(1)
 
@@ -122,31 +124,6 @@ def relative_entropy(args):
     print(relEntropy)
 
 
-def cumulative_relative_entropy(args):
-    """ Calculate optimal k-mer through CRE value.
-
-    Args:
-        args (TODO): TODO
-
-    Returns: TODO
-
-    """
-    desc = "Calculate cumulative relative entropy of all genomes"
-    parser = argparse.ArgumentParser(description=desc)
-    parser.add_argument("filenames", nargs="+", help="file(s) of signature")
-    parser.add_argument("-ks", "--kfrom", required=True, type=int, help="Calculate from k-mer")
-    parser.add_argument("-ke", "--kend", required=True, type=int, help="last k-mer")
-    parser.add_argument("-o", "--output")
-    args = parser.parse_args(args)
-
-    filenames = args.filenames
-    kmerStart = args.kfrom
-    kmerEnd = args.kend
-
-    cre, kmer = fsig.calculate_cre(filenames[0], kmerStart, kmerEnd)
-    print(kmer)
-
-
 def average_common_feature(args):
     """ Calculate an average number of common feature pairwise
         between one genome against others
@@ -175,39 +152,6 @@ def average_common_feature(args):
     np.savetxt(outHandle, acf)
 
 
-def acf_kmer(args):
-    """ Calculate an average number of common feature pairwise
-        between one genome against others
-
-    Args:
-        args (TODO): TODO
-
-    Returns: TODO
-
-    """
-    desc = "Calculate average number of common feature"
-    parser = argparse.ArgumentParser(description=desc)
-    parser.add_argument("filenames", nargs="+", help="file(s) of signature")
-    parser.add_argument("-ks", "--kfrom", required=True, type=int, help="Calculate from k-mer")
-    parser.add_argument("-ke", "--kend", required=True, type=int, help="last k-mer")
-    parser.add_argument("-o", "--output")
-    args = parser.parse_args(args)
-
-    filenames = args.filenames
-    outF = args.output
-    kmerStart = args.kfrom
-    kmerEnd = args.kend
-
-    if outF is None:
-        outHandle = sys.stdout.buffer
-    else:
-        outHandle = open(outF, "wb")  # wb for numpy write
-
-    acf = fsig.calculate_acf(filenames, kmerStart, kmerEnd)
-
-    # np.savetxt(outHandle, acf)
-
-
 def observe_feature_frequency(args):
     """ Calculate an observe feature frequency
 
@@ -234,7 +178,80 @@ def observe_feature_frequency(args):
     df.set_index("kmer", inplace=True)
     df.to_csv(output, sep="\t")
 
-def generate_uniq_mer(args):
+
+def cre_kmer(args):
+    """ Calculate optimal k-mer through CRE value.
+
+    Args:
+        args (TODO): TODO
+
+    Returns: TODO
+
+    """
+    desc = "Calculate k-mer from cumulative relative entropy of all genomes"
+    parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument("filenames", nargs="+", help="file(s) of signature")
+    parser.add_argument("-ks", "--kfrom", required=True, type=int, help="Calculate from k-mer")
+    parser.add_argument("-ke", "--kend", required=True, type=int, help="last k-mer")
+    parser.add_argument("-o", "--output")
+    parser.add_argument("-r", "--report", default="cre.txt")
+    args = parser.parse_args(args)
+
+    filenames = args.filenames
+    kmerStart = args.kfrom
+    kmerEnd = args.kend
+
+    cres = []
+    kmers = []
+    for filename in filenames:
+        logutil.notify("Working on {}".format(filename))
+        cre, kmer = fsig.calculate_cre_kmer(filename, kmerStart, kmerEnd)
+        cres.append(cre)
+        kmers.append(kmer)
+
+    cres = np.vstack(cres)
+    # Write report.
+    suggestKmer = int(round(np.mean(kmers)))
+    print("Suggest k-mer based on CRE value is {}".format(suggestKmer))
+
+
+def acf_kmer(args):
+    """ Calculate an average number of common feature pairwise
+        between one genome against others
+
+    Args:
+        args (TODO): TODO
+
+    Returns: TODO
+
+    """
+    desc = "Calculate optimal k-mer from average number of common feature"
+    parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument("filenames", nargs="+", help="file(s) of signature")
+    parser.add_argument("-ks", "--kfrom", required=True, type=int, help="Calculate from k-mer")
+    parser.add_argument("-ke", "--kend", required=True, type=int, help="last k-mer")
+    parser.add_argument("-r", "--report", default="acf.txt")
+    parser.add_argument("-o", "--output")
+    args = parser.parse_args(args)
+
+    filenames = args.filenames
+    outF = args.output
+    kmerStart = args.kfrom
+    kmerEnd = args.kend
+
+    if outF is None:
+        outHandle = sys.stdout.buffer
+    else:
+        outHandle = open(outF, "wb")  # wb for numpy write
+
+    acf, kmers = fsig.calculate_acf_kmer(filenames, kmerStart, kmerEnd)
+    acf = np.hstack(acf)
+    suggestKmer = int(round(np.mean(kmers)))
+
+    print("Suggest k-mer based on ACF value is {}".format(suggestKmer))
+
+
+def ofc_kmer(args):
     """ Calculate an observe feature frequency
 
     Args:
@@ -244,17 +261,24 @@ def generate_uniq_mer(args):
 
     """
 
-    parser = argparse.ArgumentParser()
+    desc = "Calculate average number of common feature"
+    parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("filenames", nargs="+", help="file(s) of signature")
-    parser.add_argument("-k", "--ksize", required=True, type=int)
-    parser.add_argument("-w", "--wd", default=os.getcwd())
-    parser.add_argument("-o", "--output", required=True)
+    parser.add_argument("-ks", "--kfrom", required=True, type=int, help="Calculate from k-mer")
+    parser.add_argument("-ke", "--kend", required=True, type=int, help="last k-mer")
+    parser.add_argument("-r", "--report", default="ofc.txt")
+    parser.add_argument("-o", "--output")
     args = parser.parse_args(args)
 
-    ksize = args.ksize
-    output = args.output
+    filenames = args.filenames
+    outF = args.output
+    kmerStart = args.kfrom
+    kmerEnd = args.kend
 
-    allPossible, uniq = fsig.calculate_uniq_mer(args.filenames, ksize)
+    percentage, suggestKmer = fsig.calculate_ofc_kmer(args.filenames, kmerStart, kmerEnd)
+
+
+    print("Suggest k-mer based on OCF value is {}".format(suggestKmer))
 
     outF = args.output
     if outF is None:
@@ -262,7 +286,7 @@ def generate_uniq_mer(args):
     else:
         outHandle = open(outF, "wb")  # wb for numpy write
 
-    np.savetxt(outHandle, [allPossible, uniq], fmt="%i")
+    # np.savetxt(outHandle, [allPossible, uniq], fmt="%i")
 
 
 def generate_distance_matrix(args):

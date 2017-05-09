@@ -4,7 +4,8 @@
     (1) Viral Phylogenomics using an alignment-free method: A three step approach to determine optimal length of k-mer
 """
 
-import scipy.sparse as sps
+import math
+
 from scipy.interpolate import interp1d
 import h5py
 import numpy as np
@@ -12,8 +13,11 @@ import numpy as np
 import ksiga.ksignature as ksignature
 from ksiga.ksignature import KmerSignature
 import ksiga.sparse_util as su
-from ksiga import kmer
+from ksiga import kmerutil
 from ksiga import logutil
+
+# So that old codes won't break
+rebuild_sparse_matrix = ksignature.rebuild_sparse_matrix
 
 
 def calculate_relative_entropy(indexFilename, ksize):
@@ -28,123 +32,9 @@ def calculate_relative_entropy(indexFilename, ksize):
     array1 = store.get_kmer(ksize-1)
     array2 = store.get_kmer(ksize-2)
 
-    genLoc1 = kmer.create_kmer_loc_fn(ksize-1)
-    genLoc2 = kmer.create_kmer_loc_fn(ksize-2)
-
-    ARes = []
-    FRes = []
-    BRes = []
-    MRes = []
-    # Calculate final normalization factor. Delegate the normalization to the last step (Arithmatric).
-    # TODO: Collect everything and calculate in vectorize manner.?
-    for (idxA, locL) in enumerate(array0.indices):
-        mer = kmer.decode(locL, ksize)
-        merFront = mer[0:-1]
-        merBack = mer[1:]
-        merMiddle = mer[1:-1]
-        # Find location of left mer, right mer, and middle mer
-        locF = genLoc1(merFront)
-        locB = genLoc1(merBack)
-        locM = genLoc2(merMiddle)
-        # TODO: There should be an easy and very effieicient way to map ATTT -> ATT, TTT
-        idxF = su.has_indices(array1, locF)
-        idxB = su.has_indices(array1, locB)
-        idxM = su.has_indices(array2, locM)
-        # For debugging. This shouldn't be happened
-        if __debug__:
-            if idxF == array1.indices.shape[0]:
-                raise IndexError("Left not found")
-            if idxB == array1.indices.shape[0]:
-                raise IndexError("Right not found")
-            if idxM == array2.indices.shape[0]:
-                raise IndexError("Middle not found")
-        # All, Front, Back, Middle
-        countA = array0.data[idxA]
-        countF = array1.data[idxF]
-        countB = array1.data[idxB]
-        countM = array2.data[idxM]
-
-        ARes.append(countA)
-        FRes.append(countF)
-        BRes.append(countB)
-        MRes.append(countM)
-
-    ARes = np.array(ARes)  # Obs
-    FRes = np.array(FRes)  # Front
-    BRes = np.array(BRes)  # Back
-    MRes = np.array(MRes)  # Middle
-    # Factor version
-    norm0 = array0.data.sum()
-    norm1 = array1.data.sum()
-    norm2 = array2.data.sum()
-    expectation = (FRes * BRes) / MRes
-    observation = ARes
-    normFactor = (norm1 ** 2) / (norm2 * norm0)
-    rhs = np.log2(observation / expectation) + np.log2(normFactor)
-    lhs = ARes / norm0
-    relativeEntropy = (lhs * rhs).sum()
-
-    ## Version which follow a formular more closely.
-    ## Roughly the same speed with the reduce version above.
-    # norm0 = array0.data.sum()
-    # norm1 = array1.data.sum()
-    # norm2 = array2.data.sum()
-    # expectation = (FRes/norm1) * (BRes/norm1) / (MRes/norm2)
-    # observation = ARes / norm0
-    # relativeEntropy = (observation * np.log2(observation/expectation)).sum()
+    relativeEntropy = _calculate_cre(array0, array1, array2)
 
     return relativeEntropy
-
-
-def calculate_cre(indexFilename, start_k, stop_k):
-    """ Calculate CRE and 
-
-    Args:
-        stores (TODO): TODO
-        ksize (TODO): TODO
-
-    Returns: TODO
-
-    """
-
-    #  Check that all k-mer is already indexed.
-    store = KmerSignature(indexFilename)
-    for k in range(start_k - 2, stop_k + 1):
-        pass
-        # raise IndexError()
-
-    relEntropy = []
-    for k in range(start_k+1, stop_k+1):  # You don't need to calculate the first one (because it is equal to sum).
-        relEntropy.append(calculate_relative_entropy(indexFilename, k))
-
-    relEntropy = np.array(relEntropy)
-    #  This shouldn't have much impact, but just in case where number goes below 0.
-    relEntropy = np.clip(relEntropy, 0, np.inf)
-    maximumVal = relEntropy.sum()
-    cre = maximumVal - relEntropy.cumsum()
-    cre = np.insert(cre, 0, maximumVal)
-    kmerRange = np.arange(start_k, stop_k+1)
-    suggestKmer = _find_yintercept(kmerRange, cre, 10)
-
-    return (cre, suggestKmer)
-
-def _find_yintercept(x, y, percent):
-    """ Find an intercept of CRE graph. ( Log/Ln graph)?
-    """
-
-    cutoff = y.max() / percent
-    #  Check if it is still fall in range.
-    if y.min() > cutoff:
-        raise NotImplementedError("Calculate the k-mer beyond index is not implemented yet.")
-    #  Interpolate to get more resolution on k-mer.
-    fi = interp1d(x, y, kind="cubic")
-    xn = np.linspace(x[0], x[-1], 500)
-    yn = fi(xn)
-    #  Check for an intercept
-    idx = np.argwhere(np.diff(np.sign(yn - cutoff)) != 0).reshape(-1)
-    xIntercept = xn[idx[0]]
-    kmer = int(round(xIntercept)) #  Kmer
-    return kmer
 
 
 def calculate_average_common_feature(stores, ksize):
@@ -188,23 +78,6 @@ def calculate_average_common_feature(stores, ksize):
     return result
 
 
-def calculate_acf(stores, start_k, stop_k):
-    
-    results = []
-
-    for ksize in range(start_k, stop_k + 1):
-        val = calculate_average_common_feature(stores, ksize)
-        val = val[:, np.newaxis]
-        # Turn into 
-        results.append(val)
-
-    results = np.hstack(results)
-    # For each row, calculate the k-mer
-    for result in results:
-        kmer = _find_yintercept(np.arange(start_k, stop_k+1), result, 10)
-        print(kmer)
-
-
 def calculate_obsff(stores, ksize):
     """ Calculate an observe and expect.
 
@@ -226,13 +99,95 @@ def calculate_obsff(stores, ksize):
     occurence = np.asarray(csr_matrix.sum(axis=0)).squeeze()
     occurence = occurence[np.nonzero(occurence)]  #  Remove zero
     sites = np.unique(csr_matrix.indices)  # Kmer string
-    fn = np.vectorize(kmer.decode)
+    fn = np.vectorize(kmerutil.decode)
     kmerStr = fn(sites, ksize)
 
     return (prob, occurence, kmerStr)
 
 
-def calculate_uniq_mer(stores, ksize):
+def calculate_cre_kmer(indexFilename, start_k, stop_k):
+    """ Calculate CRE and kmer.
+
+    Args:
+        stores (TODO): TODO
+        ksize (TODO): TODO
+
+    Returns: TODO
+
+    """
+
+    #  Check that all k-mer is already indexed.
+    store = KmerSignature(indexFilename)
+    for k in range(start_k - 2, stop_k + 1):
+        pass
+
+    relEntropies = []
+    for k in range(start_k+1, stop_k+1):  # You don't need to calculate the first one (because it is equal to sum).
+        relEntropies.append(calculate_relative_entropy(indexFilename, k))
+
+    relEntropies = np.array(relEntropies)
+    #  This shouldn't have much impact, but just in case where number goes below 0.
+    relEntropies = np.clip(relEntropies, 0, np.inf)
+    maximumVal = relEntropies.sum()
+    cre = maximumVal - relEntropies.cumsum()
+    cre = np.insert(cre, 0, maximumVal)
+    kmerRange = np.arange(start_k, stop_k+1)
+    suggestKmer = _find_yintercept(kmerRange, cre, 10)
+
+    return (cre, suggestKmer)
+
+
+def calculate_acf_kmer(stores, start_k, stop_k):
+    """
+    """
+
+    acfs = []
+    for ksize in range(start_k, stop_k + 1):
+        val = calculate_average_common_feature(stores, ksize)
+        val = val[:, np.newaxis]
+        acfs.append(val)
+
+    acfs = np.hstack(acfs)
+    # For each row, calculate the k-mer
+    kmers = []
+    for acf in acfs:
+        kmer = _find_yintercept(np.arange(start_k, stop_k+1), acf, 10)
+        kmers.append(kmer)
+
+    return (acfs, kmers)
+
+
+def calculate_ofc_kmer(stores, start_k, stop_k):
+    """ Calculate OFC.
+
+    Args:
+        arg1 (TODO): TODO
+
+    Returns: TODO
+
+    """
+
+    allPossibleKmer = []
+    ocf = []
+
+    for ksize in range(start_k, stop_k + 1):
+        csr_matrix = rebuild_sparse_matrix(stores, ksize)
+        a, o = _calculate_ocf(csr_matrix)
+        allPossibleKmer.append(a)
+        ocf.append(o)
+
+    ocf = np.array(ocf)
+    allPossibleKmer = np.array(allPossibleKmer)
+    cutoff = 80
+    percentage = (1 - (ocf / allPossibleKmer)) * 100
+
+    # TODO: Maybe interpolate to find a more optimal point?
+    kmer = np.argwhere(np.diff(np.sign(percentage - cutoff)) < 0)[:,-1][-1] + start_k
+
+    return (percentage, kmer)
+
+
+def calculate_ofc(stores, ksize):
     """ Calculate an observe and expect.
 
     Args:
@@ -250,41 +205,142 @@ def calculate_uniq_mer(stores, ksize):
 
     return (allPossible, numberOfUnique)
 
+#
+#  Working horse functions.
+#
 
-rebuild_sparse_matrix = ksignature.rebuild_sparse_matrix
+def _find_yintercept(x, y, percent):
+    """ Find an intercept of CRE graph. ( Log/Ln graph)?
+    """
 
-# def rebuild_sparse_matrix(stores, ksize):
-    # """ Rebuild sparse matrix from list of stores. The implementation
-        # is obvious (if not, read csr_matrix doc on scipy).
+    cutoff = y.max() / percent
+    #  Check if it is still fall in range.
+    if y.min() > cutoff:
+        raise NotImplementedError("Calculate the k-mer beyond index is not implemented yet.")
+    #  Interpolate to get more resolution on k-mer.
+    fi = interp1d(x, y, kind="cubic")
+    xn = np.linspace(x[0], x[-1], 500)
+    yn = fi(xn)
+    #  Check for an intercept
+    idx = np.argwhere(np.diff(np.sign(yn - cutoff)) != 0).reshape(-1)
+    xIntercept = xn[idx[0]]
+    kmer = xIntercept #  Kmer
+    return kmer
 
-    # Args:
-        # stores (TODO): TODO
-        # ksize (int): Size of kmer to calculate
 
-    # Returns: TODO
+def _calculate_cre(array0, array1, array2):
+    """TODO: Docstring for function.
 
-    # """
-    # # Initialize list for building a sparse matrix.
-    # data = []
-    # indices = []
-    # indptr = []
+    Args:
+        arg1 (TODO): TODO
 
-    # indptr.append(0)
+    Returns: TODO
 
-    # for store in stores:
-        # array = KmerSignature(store).get_kmer(ksize)
-        # data.append(array.data)
-        # indices.append(array.indices)
-        # indptr.append(indptr[-1] + array.data.shape[0])
+    """
 
-    # data = np.concatenate(data)
-    # indices = np.concatenate(indices)
+    ksize = int(math.log(array1.shape[1], 4)) + 1
 
-    # rowNum = len(stores)
-    # colNum = 4 ** ksize
-    # shape = (rowNum, colNum)
+    genLoc1 = kmerutil.create_kmer_loc_fn(ksize-1)
+    genLoc2 = kmerutil.create_kmer_loc_fn(ksize-2)
 
-    # return sps.csr_matrix((data, indices, indptr), shape=shape)
+    ARes = []
+    FRes = []
+    BRes = []
+    MRes = []
+    # Calculate final normalization factor. Delegate the normalization to the last step (Arithmatric).
+    # TODO: Collect everything and calculate in vectorize manner. It should be faster because
+    # 1. Lookup. Look at the su.searchsort.
+    # 2. Indexing?  I am not sure if fancy indexing A[[1,5]] will be faster than [A[1], A[5]]
+    # By the way, we might speed it up by reduce a redundant, xTTTTTTx required to look for TTTTTT at least 16 times.
+    for (idxA, locL) in enumerate(array0.indices):
+        mer = kmerutil.decode(locL, ksize)
+        merFront = mer[0:-1]
+        merBack = mer[1:]
+        merMiddle = mer[1:-1]
+        # Find location of left mer, right mer, and middle mer
+        locF = genLoc1(merFront)
+        locB = genLoc1(merBack)
+        locM = genLoc2(merMiddle)
+        # TODO: There should be an easy and very efficient way to map ATTT -> ATT, TTT
+        
+        # This is quicker than a naive lookup.
+        idxF = su.has_indices(array1, locF)
+        idxB = su.has_indices(array1, locB)
+        idxM = su.has_indices(array2, locM)
+        # # For debugging. This shouldn't be happened since occurence of ATTT imply the existenced of ATT, TT, and TTT
+        # if __debug__:
+            # if idxF == array1.indices.shape[0]:
+                # raise IndexError("Left not found")
+            # if idxB == array1.indices.shape[0]:
+                # raise IndexError("Right not found")
+            # if idxM == array2.indices.shape[0]:
+                # raise IndexError("Middle not found")
+        # # All, Front, Back, Middle
+
+        countA = array0.data[idxA]
+
+        countF = array1.data[idxF]
+        countB = array1.data[idxB]
+        countM = array2.data[idxM]
+
+        ARes.append(countA)
+        FRes.append(countF)
+        BRes.append(countB)
+        MRes.append(countM)
+
+    ARes = np.array(ARes)  # Obs
+    FRes = np.array(FRes)  # Front
+    BRes = np.array(BRes)  # Back
+    MRes = np.array(MRes)  # Middle
+    # Calculate by using a factorized version of formula.
+    norm0 = array0.data.sum()
+    norm1 = array1.data.sum()
+    norm2 = array2.data.sum()
+    expectation = (FRes * BRes) / MRes
+    observation = ARes
+    normFactor = (norm1 ** 2) / (norm2 * norm0)
+    rhs = np.log2(observation / expectation) + np.log2(normFactor)
+    lhs = ARes / norm0
+    relativeEntropy = (lhs * rhs).sum()
+
+    ## Version which follow a formula as written in paper. Performance is still the same though.
+    ## Roughly the same speed with the reduce version above.
+    # norm0 = array0.data.sum()
+    # norm1 = array1.data.sum()
+    # norm2 = array2.data.sum()
+    # expectation = (FRes/norm1) * (BRes/norm1) / (MRes/norm2)
+    # observation = ARes / norm0
+    # relativeEntropy = (observation * np.log2(observation/expectation)).sum()
+
+    return relativeEntropy
+
+
+def _calculate_acf(spmatrix):
+    """TODO: Docstring for function.
+
+    Args:
+        spmatrix (csr_matrix): TODO
+
+    Returns: TODO
+
+    """
+    pass
+
+
+def _calculate_ocf(spmatrix):
+    """TODO: Docstring for function.
+
+    Args:
+        spmatrix (csr_matrix): TODO
+
+    Returns: TODO
+
+    """
+    unique, count = np.unique(spmatrix.indices, return_counts=True)
+    allPossible = unique.shape[0]
+    numberOfUnique = np.where(count == 1)[0].shape[0]
+
+    return (allPossible, numberOfUnique)
 
 
 def build_signature(fasta, ksize, store):
@@ -305,7 +361,7 @@ def build_signature(fasta, ksize, store):
         raise KeyError("Already existed")
 
     group = store.create_group(sigName)
-    indice, data = kmer.build_csr_matrix_from_fasta(fasta, ksize)
+    indice, data = kmerutil.build_csr_matrix_from_fasta(fasta, ksize)
     colSize = 4 ** (ksize)
     group.create_dataset("indices", compression="gzip", compression_opts=5, data=indice)
     group.create_dataset("data", compression="gzip", compression_opts=5, data=data)
