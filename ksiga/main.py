@@ -75,32 +75,24 @@ def index(args):
     Returns: TODO
 
     """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(usage="usage:'%(prog)s index [options]'")
     parser.add_argument("filenames", nargs="+", help="file(s) of sequences")
     parser.add_argument("-k", "--ksize", required=True, type=int)
-    parser.add_argument("-o", "--wd", default=os.getcwd())
+    parser.add_argument("-o", "--output", default=os.getcwd())
     args = parser.parse_args(args)
 
     filenames = args.filenames
     ksize = args.ksize
-    wd = args.wd
+    od = args.output
 
     for filename in args.filenames:
         if not os.path.exists(filename):
             # TODO: Warn or exit here.
             pass
 
-    if not os.path.isdir(wd):  #  Check for output folder
-        try:
-            os.makedirs(wd)
-        except FileExistsError:
-            logutil.notify("Filename is already exists.")
-            exit(1)
-
     for filename in filenames:
         # Clean folder name from file
-        basename = pathlib.Path(filename).name
-        outputName = "{wd}/{fn}.ksig".format(wd=wd, fn=basename)
+        outputName = "{fn}.ksig".format(fn=od)
         fInputH = openner(filename, mode="rt")
         fsig.build_signature(fInputH, ksize, outputName)
 

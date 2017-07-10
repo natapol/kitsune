@@ -4,3 +4,4 @@ version.py
 build/
 ksiga.egg-info/
 .cache
+example_data

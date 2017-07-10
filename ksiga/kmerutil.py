@@ -15,10 +15,11 @@ import Bio.SeqIO as SeqIO
 KMER_ARR = ["A", "C", "G", "T"]
 KMER_DIC = {"A":1, "C":2, "G":3, "T":4}
 
-# Conveniant function
-REGEX = re.compile("[^ATGC]")
-id_fn = lambda x: x
+# Regex to clean sequence data
+NUCLEOTIDE_REGEX = re.compile("[^ATGC]")
 
+# Function to collapse kmer
+id_fn = lambda x: x
 
 def kmer_location(kmer):
     """ Calculate kmer location to store in array
@@ -71,14 +72,14 @@ def create_kmer_loc_fn(size):
 
     return wrapped
 
-        
+
 def kmer_count(seq, ksize, keyfn=id_fn):
     """ Calculate kmer and store to a dictionary.
 
     Args:
-        seq (string): TODO
-        ksize (int): TODO
-        keyfn (func): TODO
+        seq (string): nucleotide sequence
+        ksize (int): size of kmer to calculate
+        keyfn (func): key transformation
 
     Returns: TODO
 
@@ -86,17 +87,14 @@ def kmer_count(seq, ksize, keyfn=id_fn):
     DICT = Counter()
     for i in range(0, len(seq)-ksize+1):
         kmer = seq[i: i+ksize]
-        if not bool(REGEX.search(kmer)):
+        if not bool(NUCLEOTIDE_REGEX.search(kmer)):  # If it has no invalid character.
             DICT[keyfn(kmer)] += 1
 
     return DICT
 
-
 #
 # Conveniant function
 #
-
-
 def kmer_count_fasta(f, ksize=13, keyfn=id_fn):
     mainCounter = Counter()
     handle = SeqIO.parse(f, "fasta")
@@ -107,7 +105,7 @@ def kmer_count_fasta(f, ksize=13, keyfn=id_fn):
 
 
 def build_csr_matrix_from_fasta(fh, ksize):
-    """ Build a `row` of csr matrix from fasta file.
+    """ Build a csr row from fasta file.
         Could be later build into a matrix.
 
     Args:
@@ -125,14 +123,14 @@ def build_csr_matrix_from_fasta(fh, ksize):
         seq = str(seq.seq)
         mainCounter += kmer_count(seq, ksize, keyfn)
 
-    # From main counter to csr_matrix
+    # Initialize a sparse matrix.
     rowNum = 1
     colNum = kmer_location("A" * (ksize+1)) - kmer_location("A" * ksize)
     shape = (rowNum, colNum)
 
     tupCounter = ((k, v) for k, v in mainCounter.items())
     indices, data = np.dstack(mainCounter.items())[0]  # Similar effect to zip(*item)
-    # We will exploit the fact that the indices is sorted in later search.
+    # Sort index so that we can efficiency search.
     newIdx = np.argsort(indices)
     indices = indices[newIdx]
     data = data[newIdx]
