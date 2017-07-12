@@ -138,16 +138,21 @@ def average_common_feature(args):
     parser.add_argument("-o", "--output")
     args = parser.parse_args(args)
 
+    filenames = args.filenames
     outF = args.output
+
     if outF is None:
-        outHandle = sys.stdout.buffer
+        outHandle = sys.stdout
     else:
-        outHandle = open(outF, "wb")  # wb for numpy write
+        outHandle = open(outF, "w")
 
     acf = fsig.calculate_average_common_feature(args.filenames, args.ksize)
+    acf = np.round(acf, 2)
 
-    np.savetxt(outHandle, acf)
+    baseFilenames = (os.path.basename(filename) for filename in filenames)
 
+    for filename, val in zip(baseFilenames, acf):
+        print("{}\t{}".format(filename, val), file=outHandle)
 
 def observe_feature_frequency(args):
     """ Calculate an observe feature frequency
@@ -273,7 +278,6 @@ def ofc_kmer(args):
     kmerEnd = args.kend
 
     percentage, suggestKmer = fsig.calculate_ofc_kmer(args.filenames, kmerStart, kmerEnd)
-
 
     print("Suggest k-mer based on OCF value is {}".format(suggestKmer))
 

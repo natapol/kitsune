@@ -143,23 +143,10 @@ def calculate_average_common_feature(stores, ksize):
     vals = []
     norm = csr_matrix.shape[0] - 1
 
-    # TODO: Try C * tranpose(C) when all data are convert to 1.
-    # That should somewhat faster?
+    # Read these later
     # 1. http://stackoverflow.com/questions/24566633/which-is-the-best-way-to-multiply-a-large-and-sparse-matrix-with-its-transpose
     # 2. C.dot(C.transpose)
     csr_matrix.data = np.ones(csr_matrix.data.shape[0], np.int64)  # Convert all number to 1
-    # for i in range(rowNum):
-    #     val = 0
-    #     for j in range(rowNum):
-    #         if i == j:
-    #             continue
-    #         iRow = csr_matrix[i]
-    #         jRow = csr_matrix[j]
-
-    #         found = su.searchsorted(iRow.indices, jRow.indices)
-    #         val += found.shape[0]
-
-    #     vals.append(val)
 
     for i in range(rowNum):
         initVal = csr_matrix.dot(csr_matrix[i].transpose())  #  Need to delete one that compare to itself
