@@ -109,11 +109,16 @@ def relative_entropy(args):
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--file", required=True, help="")
     parser.add_argument("-k", "--ksize", required=True, type=int)
-    parser.add_argument("-w", "--wd", default=os.getcwd())
+    parser.add_argument("-o", "--output")
     args = parser.parse_args(args)
 
+    if args.output is None:
+        foh = sys.stdout
+    else:
+        foh = open(args.output, "w")
+        
     relEntropy = fsig.calculate_relative_entropy(args.file, args.ksize)
-    print(relEntropy)
+    print(relEntropy, file=foh)
 
 
 def average_common_feature(args):

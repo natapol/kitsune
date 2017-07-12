@@ -32,12 +32,12 @@ def calculate_relative_entropy(indexFilename, ksize):
     array1 = store.get_kmer(ksize-1)
     array2 = store.get_kmer(ksize-2)
 
-    relativeEntropy = _calculate_cre(array0, array1, array2)
+    relativeEntropy = _calculate_re(array0, array1, array2)
 
     return relativeEntropy
 
 
-def _calculate_cre(array0, array1, array2):
+def _calculate_re(array0, array1, array2):
     """ Calculate relative entropy
 
     Args:
@@ -147,19 +147,24 @@ def calculate_average_common_feature(stores, ksize):
     # That should somewhat faster?
     # 1. http://stackoverflow.com/questions/24566633/which-is-the-best-way-to-multiply-a-large-and-sparse-matrix-with-its-transpose
     # 2. C.dot(C.transpose)
-    csr_matrix.data = np.ones(csr_matrix.data.shape[0], np.int64)
+    csr_matrix.data = np.ones(csr_matrix.data.shape[0], np.int64)  # Convert all number to 1
+    # for i in range(rowNum):
+    #     val = 0
+    #     for j in range(rowNum):
+    #         if i == j:
+    #             continue
+    #         iRow = csr_matrix[i]
+    #         jRow = csr_matrix[j]
+
+    #         found = su.searchsorted(iRow.indices, jRow.indices)
+    #         val += found.shape[0]
+
+    #     vals.append(val)
+
     for i in range(rowNum):
-        val = 0
-        # val = csr_matrix.dot(csr_matrix[i].transpose()).sum()  # Need to work on this later
-        for j in range(rowNum):
-            if i == j:
-                continue
-            iRow = csr_matrix[i]
-            jRow = csr_matrix[j]
-
-            found = su.searchsorted(iRow.indices, jRow.indices)
-            val += found.shape[0]
-
+        initVal = csr_matrix.dot(csr_matrix[i].transpose())  #  Need to delete one that compare to itself
+        initVal[i] = 0
+        val = initVal.sum()
         vals.append(val)
 
     result = np.array(vals) / norm
