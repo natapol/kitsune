@@ -91,8 +91,7 @@ def index(args):
             pass
 
     for filename in filenames:
-        # Clean folder name from file
-        outputName = "{fn}.ksig".format(fn=od)
+        outputName = "{fn}".format(fn=od)
         fInputH = openner(filename, mode="rt")
         fsig.build_signature(fInputH, ksize, outputName)
 
