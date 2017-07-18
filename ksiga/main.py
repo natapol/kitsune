@@ -78,7 +78,7 @@ def index(args):
     parser = argparse.ArgumentParser(usage="usage:'%(prog)s index [options]'")
     parser.add_argument("filenames", nargs="+", help="file(s) of sequences")
     parser.add_argument("-k", "--ksize", required=True, type=int)
-    parser.add_argument("-o", "--output", default=os.getcwd())
+    parser.add_argument("-o", "--output")
     args = parser.parse_args(args)
 
     filenames = args.filenames
