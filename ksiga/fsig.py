@@ -32,7 +32,8 @@ def calculate_relative_entropy(indexFilename, ksize):
     array1 = store.get_kmer(ksize-1)
     array2 = store.get_kmer(ksize-2)
 
-    relativeEntropy = _calculate_re(array0, array1, array2)
+    relativeEntropy = _calculate_re_vectorize(array0, array1, array2)
+    #relativeEntropy = _calculate_re(array0, array1, array2)
 
     return relativeEntropy
 
@@ -59,9 +60,6 @@ def _calculate_re(array0, array1, array2):
     BRes = []
     MRes = []
     # Calculate final normalization factor. Delegate the normalization to the last step (Arithmatric).
-    # TODO: Collect everything and calculate in vectorize manner. It should be faster because
-    # 1. Lookup.
-    # 2. Indexing?  I am not sure if fancy indexing A[[1,5]] will be faster than [A[1], A[5]]
     # 3. the way, we might speed it up by reduce a redundant, xTTTTTTx required to look for TTTTTT at least 16 times.
     #    3.1 So, store kmer as a "TREE"????
     for (idxA, locL) in enumerate(array0.indices):
@@ -139,76 +137,47 @@ def _calculate_re_vectorize(array0, array1, array2):
     """
 
     def _convert_to_front(kmerHash, ksize):
-        u = kmerHash[1:]
-        pass
+        kmerStr = kmerutil.decode(kmerHash, ksize)
+        u = kmerStr[1:]
+        return kmerutil.encode(u)[0]
 
     def _convert_to_back(kmerHash, ksize):
-        u = kmerHash[:-1]
-        pass
+        kmerStr = kmerutil.decode(kmerHash, ksize)
+        u = kmerStr[:-1]
+        return kmerutil.encode(u)[0]
 
     def _convert_to_middle(kmerHash, ksize):
-        u = kmerHash[1:-1]
-        pass
+        kmerStr = kmerutil.decode(kmerHash, ksize)
+        u = kmerStr[1:-1]
+        return kmerutil.encode(u)[0]
+
 
     ksize = int(math.log(array1.shape[1], 4)) + 1  # Calculate kmer from size of array to hold all kmer
 
-    genLoc1 = kmerutil.create_kmer_loc_fn(ksize-1)
-    genLoc2 = kmerutil.create_kmer_loc_fn(ksize-2)
-
-    genLoc1Vec = np.vectorize(genLoc1)
-    genLoc2Vec = np.vectorize(genLoc2)
-
-    FRes = []
-    BRes = []
-    MRes = []
-
     # Calculate all index for each level.
-    decode_ksize = lambda seq: kmerutil.decode(seq, ksize)
-    decode_ksize_vec = np.vectorize(decode_ksize)
-    decode_ksize_vec(array0.indices)
-
+    ARes = array0.data  # Obs
     # All merFront
-
+    convertFrontVec = np.vectorize(lambda khash:_convert_to_front(khash, ksize))
+    fHash = convertFrontVec(array0.indices)
+    fIdx = su.searchsorted(array1.indices, fHash)
+    FRes = array1.data[fIdx]
     # All merBack
-    for (idxA, locL) in enumerate(array0.indices):
-        mer = kmerutil.decode(locL, ksize)
-        merFront = mer[0:-1]
-        merBack = mer[1:]
-        merMiddle = mer[1:-1]
-        # Find location of left mer, right mer, and middle mer
-        locF = genLoc1(merFront)
-        locB = genLoc1(merBack)
-        locM = genLoc2(merMiddle)
-        # TODO: There should be an easy and very efficient way to map ATTT -> ATT, TTT
-  
-        # This is quicker than a naive lookup.
-        idxF = su.has_indices(array1, locF)
-        idxB = su.has_indices(array1, locB)
-        idxM = su.has_indices(array2, locM)
-        # # For debugging. This shouldn't be happened since occurence of ATTT imply the existenced of ATT, TT, and TTT
-        # if __debug__:
-            # if idxF == array1.indices.shape[0]:
-                # raise IndexError("Left not found")
-            # if idxB == array1.indices.shape[0]:
-                # raise IndexError("Right not found")
-            # if idxM == array2.indices.shape[0]:
-                # raise IndexError("Middle not found")
-        # # All, Front, Back, Middle
+    convertBackVec = np.vectorize(lambda khash:_convert_to_back(khash, ksize))
+    bHash = convertBackVec(array0.indices)
+    bIdx = su.searchsorted(array1.indices, bHash)
+    BRes = array1.data[bIdx]
 
-        countA = array0.data[idxA]
-        countF = array1.data[idxF]
-        countB = array1.data[idxB]
-        countM = array2.data[idxM]
+    # All Mer middle
+    convertMidVec = np.vectorize(lambda khash:_convert_to_middle(khash, ksize))
+    mHash = convertMidVec(array0.indices)
+    mIdx = su.searchsorted(array2.indices, mHash)
+    MRes = array2.data[mIdx]
 
-        ARes.append(countA)
-        FRes.append(countF)
-        BRes.append(countB)
-        MRes.append(countM)
+    # Check
+    assert len(ARes) == len(FRes)
+    assert len(FRes) == len(BRes)
+    assert len(BRes) == len(MRes)
 
-    ARes = np.array(ARes)  # Obs
-    FRes = np.array(FRes)  # Front
-    BRes = np.array(BRes)  # Back
-    MRes = np.array(MRes)  # Middle
     # Calculate by using a factorized version of formula.
     norm0 = array0.data.sum()
     norm1 = array1.data.sum()
