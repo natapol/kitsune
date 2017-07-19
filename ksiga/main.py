@@ -79,13 +79,15 @@ def index(args):
     parser.add_argument("filenames", nargs="+", help="file(s) of sequences")
     parser.add_argument("-k", "--ksize", required=True, type=int)
     parser.add_argument("-o", "--output")
+    parser.add_argument("-f", "--force", action="store_true")
     args = parser.parse_args(args)
 
     filenames = args.filenames
     ksize = args.ksize
     od = args.output
+    force = args.force
 
-    for filename in args.filenames:
+    for filename in od:
         if not os.path.exists(filename):
             # TODO: Warn or exit here.
             pass
@@ -93,7 +95,7 @@ def index(args):
     for filename in filenames:
         outputName = "{fn}".format(fn=od)
         fInputH = openner(filename, mode="rt")
-        fsig.build_signature(fInputH, ksize, outputName)
+        fsig.build_signature(fInputH, ksize, outputName, force)
 
 
 def relative_entropy(args):
