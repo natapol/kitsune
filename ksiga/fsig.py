@@ -60,9 +60,10 @@ def _calculate_re(array0, array1, array2):
     MRes = []
     # Calculate final normalization factor. Delegate the normalization to the last step (Arithmatric).
     # TODO: Collect everything and calculate in vectorize manner. It should be faster because
-    # 1. Lookup. Look at the su.searchsort.
+    # 1. Lookup.
     # 2. Indexing?  I am not sure if fancy indexing A[[1,5]] will be faster than [A[1], A[5]]
-    # By the way, we might speed it up by reduce a redundant, xTTTTTTx required to look for TTTTTT at least 16 times.
+    # 3. the way, we might speed it up by reduce a redundant, xTTTTTTx required to look for TTTTTT at least 16 times.
+    #    3.1 So, store kmer as a "TREE"????
     for (idxA, locL) in enumerate(array0.indices):
         mer = kmerutil.decode(locL, ksize)
         merFront = mer[0:-1]
@@ -89,7 +90,112 @@ def _calculate_re(array0, array1, array2):
         # # All, Front, Back, Middle
 
         countA = array0.data[idxA]
+        countF = array1.data[idxF]
+        countB = array1.data[idxB]
+        countM = array2.data[idxM]
 
+        ARes.append(countA)
+        FRes.append(countF)
+        BRes.append(countB)
+        MRes.append(countM)
+
+    ARes = np.array(ARes)  # Obs
+    FRes = np.array(FRes)  # Front
+    BRes = np.array(BRes)  # Back
+    MRes = np.array(MRes)  # Middle
+    # Calculate by using a factorized version of formula.
+    norm0 = array0.data.sum()
+    norm1 = array1.data.sum()
+    norm2 = array2.data.sum()
+    expectation = (FRes * BRes) / MRes
+    observation = ARes
+    normFactor = (norm1 ** 2) / (norm2 * norm0)
+    rhs = np.log2(observation / expectation) + np.log2(normFactor)
+    lhs = ARes / norm0
+    relativeEntropy = (lhs * rhs).sum()
+
+    ## Version which follow a formula as written in paper. Performance is still the same though.
+    ## Roughly the same speed with the reduce version above.
+    # norm0 = array0.data.sum()
+    # norm1 = array1.data.sum()
+    # norm2 = array2.data.sum()
+    # expectation = (FRes/norm1) * (BRes/norm1) / (MRes/norm2)
+    # observation = ARes / norm0
+    # relativeEntropy = (observation * np.log2(observation/expectation)).sum()
+
+    return relativeEntropy
+
+
+def _calculate_re_vectorize(array0, array1, array2):
+    """ Calculate relative entropy
+
+    Args:
+        array1 (TODO): Main array
+        array2 (TODO): -1 order array
+        array3 (TODO): -2 order array
+
+    Returns: TODO
+
+    """
+
+    def _convert_to_front(kmerHash, ksize):
+        u = kmerHash[1:]
+        pass
+
+    def _convert_to_back(kmerHash, ksize):
+        u = kmerHash[:-1]
+        pass
+
+    def _convert_to_middle(kmerHash, ksize):
+        u = kmerHash[1:-1]
+        pass
+
+    ksize = int(math.log(array1.shape[1], 4)) + 1  # Calculate kmer from size of array to hold all kmer
+
+    genLoc1 = kmerutil.create_kmer_loc_fn(ksize-1)
+    genLoc2 = kmerutil.create_kmer_loc_fn(ksize-2)
+
+    genLoc1Vec = np.vectorize(genLoc1)
+    genLoc2Vec = np.vectorize(genLoc2)
+
+    FRes = []
+    BRes = []
+    MRes = []
+
+    # Calculate all index for each level.
+    decode_ksize = lambda seq: kmerutil.decode(seq, ksize)
+    decode_ksize_vec = np.vectorize(decode_ksize)
+    decode_ksize_vec(array0.indices)
+
+    # All merFront
+
+    # All merBack
+    for (idxA, locL) in enumerate(array0.indices):
+        mer = kmerutil.decode(locL, ksize)
+        merFront = mer[0:-1]
+        merBack = mer[1:]
+        merMiddle = mer[1:-1]
+        # Find location of left mer, right mer, and middle mer
+        locF = genLoc1(merFront)
+        locB = genLoc1(merBack)
+        locM = genLoc2(merMiddle)
+        # TODO: There should be an easy and very efficient way to map ATTT -> ATT, TTT
+  
+        # This is quicker than a naive lookup.
+        idxF = su.has_indices(array1, locF)
+        idxB = su.has_indices(array1, locB)
+        idxM = su.has_indices(array2, locM)
+        # # For debugging. This shouldn't be happened since occurence of ATTT imply the existenced of ATT, TT, and TTT
+        # if __debug__:
+            # if idxF == array1.indices.shape[0]:
+                # raise IndexError("Left not found")
+            # if idxB == array1.indices.shape[0]:
+                # raise IndexError("Right not found")
+            # if idxM == array2.indices.shape[0]:
+                # raise IndexError("Middle not found")
+        # # All, Front, Back, Middle
+
+        countA = array0.data[idxA]
         countF = array1.data[idxF]
         countB = array1.data[idxB]
         countM = array2.data[idxM]
@@ -338,19 +444,23 @@ def _calculate_ocf(spmatrix):
     return (allPossible, numberOfUnique)
 
 
-def build_signature(fasta, ksize, store):
+def build_signature(fasta, ksize, store, force):
     """ Build signature file from fasta.
 
     Args:
         fasta (fh): filehandle for fasta file
         ksize (int): kmer size
         store (str): filename
+        force (bool): filename
 
     Returns: Write a signature into file
 
     """
 
-    store = h5py.File(store, "a")
+    if force:
+        store = h5py.File(store, "w")
+    else:
+        store = h5py.File(store, "a")
     store.attrs["index"] = "index"
     sigName = "/kmer/{size}".format(size=ksize)
     if sigName in store:
