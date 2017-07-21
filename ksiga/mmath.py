@@ -164,9 +164,9 @@ def sparse_kl_divergence(p, q):
 
     Parameters
     ----------
-    p : scipy csr_matrix
+    p : scipy csr_matrix (with 1 row)
         "Ideal"/"true" Probability distribution
-    q : scipy csr_matrix
+    q : scipy csr_matrix (with 1 row)
         Approximation of probability distribution p
 
     Returns
@@ -174,20 +174,15 @@ def sparse_kl_divergence(p, q):
     kl : float
         KL divergence of approximating p with the distribution q
     """
-    # kl = np.sum(np.where(p != 0, p*np.log2(p/q), 0))
-    
-    # Get index that appear in both sparse matrix
-    valBoth = np.intersect1d(p.indices, q.indices)
-
-    # Get index (assume that both are sorted)
+    # Get index that appear in both sparse matrix (assume that both are sorted)
     p_idx = su.searchsorted(p.indices, q.indices)
     q_idx = su.searchsorted(q.indices, p.indices)
 
+    # Get only part where BOTH has value.
     p_val = p.data[p_idx]
     q_val = q.data[q_idx]
 
     kl = np.sum(p_val * np.log2(p_val/q_val))
-    # Get only part where BOTH has value.
 
     return kl
 

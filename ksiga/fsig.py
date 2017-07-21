@@ -141,7 +141,17 @@ def _calculate_re_vectorize(array0, array1, array2):
         u = kmerStr[1:]
         return kmerutil.encode(u)[0]
 
+    def _calculate_limit(ksize):
+        # And then we can use bin to calculate how much to delete from hash
+        A_lim = encode("A" + ("T" * ksize-1))
+        C_lim = int((A_lim * 2) + 1)
+        G_lim = int((A_lim * 3) + 2)
+        return np.array([A_lim + 1, C_lim + 1, G_lim + 1])
+
     def _convert_to_back(kmerHash, ksize):
+        # Deprecated, it is actually pretty easy if you think about when using mod.
+        # The last character is define by MAP * 1, so we could
+        kmerHash
         kmerStr = kmerutil.decode(kmerHash, ksize)
         u = kmerStr[:-1]
         return kmerutil.encode(u)[0]
@@ -159,18 +169,26 @@ def _calculate_re_vectorize(array0, array1, array2):
     # All merFront
     convertFrontVec = np.vectorize(lambda khash:_convert_to_front(khash, ksize))
     fHash = convertFrontVec(array0.indices)
-    fIdx = su.searchsorted(array1.indices, fHash)
+    idx = np.argsort(fHash)
+    inv_idx = np.argsort(idx)
+    fIdx_sorted = su.searchsorted(array1.indices, fHash[idx])
+    fIdx = fIdx_sorted[inv_idx]
     FRes = array1.data[fIdx]
     # All merBack
-    convertBackVec = np.vectorize(lambda khash:_convert_to_back(khash, ksize))
-    bHash = convertBackVec(array0.indices)
+    #convertBackVec = np.vectorize(lambda khash:_convert_to_back(khash, ksize))
+    #bHash = convertBackVec(array0.indices)
+    m = np.mod(array0.indices, 4)
+    bHash = (array0.indices - m) / 4  # No need to sort since the order will be preserved.
     bIdx = su.searchsorted(array1.indices, bHash)
     BRes = array1.data[bIdx]
 
     # All Mer middle
     convertMidVec = np.vectorize(lambda khash:_convert_to_middle(khash, ksize))
     mHash = convertMidVec(array0.indices)
-    mIdx = su.searchsorted(array2.indices, mHash)
+    idx = np.argsort(mHash)
+    inv_idx = np.argsort(idx)
+    mIdx_sorted = su.searchsorted(array1.indices, mHash[idx])
+    mIdx = mIdx_sorted[inv_idx]
     MRes = array2.data[mIdx]
 
     # Check
