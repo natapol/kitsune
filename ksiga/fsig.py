@@ -187,7 +187,7 @@ def _calculate_re_vectorize(array0, array1, array2):
     mHash = convertMidVec(array0.indices)
     idx = np.argsort(mHash)
     inv_idx = np.argsort(idx)
-    mIdx_sorted = su.searchsorted(array1.indices, mHash[idx])
+    mIdx_sorted = su.searchsorted(array2.indices, mHash[idx])
     mIdx = mIdx_sorted[inv_idx]
     MRes = array2.data[mIdx]
 
