@@ -5,6 +5,7 @@
 """
 
 import math
+import datetime
 
 from scipy.interpolate import interp1d
 import h5py
@@ -444,7 +445,6 @@ def build_signature(fasta, ksize, store, force):
         store = h5py.File(store, "w")
     else:
         store = h5py.File(store, "a")
-    store.attrs["index"] = "index"
     sigName = "/kmer/{size}".format(size=ksize)
     if sigName in store:
         raise KeyError("Kmer is already create")
@@ -455,3 +455,7 @@ def build_signature(fasta, ksize, store, force):
     group.create_dataset("indices", compression="gzip", compression_opts=5, data=indice)
     group.create_dataset("data", compression="gzip", compression_opts=5, data=data)
     group.create_dataset("shape", data=(1, colSize))
+    # Create metadata
+    group.attrs["run_date"] = datetime.datetime.now().isoformat()
+    group.attrs["run_version"] = ksiga.__version__
+    group.attrs["run_status"] = "finished"
