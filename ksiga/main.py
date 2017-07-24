@@ -92,10 +92,12 @@ def index(args):
             # TODO: Warn or exit here.
             pass
 
-    for filename in filenames:
-        outputName = "{fn}".format(fn=od)
-        fInputH = openner(filename, mode="rt")
-        fsig.build_signature(fInputH, ksize, outputName, force)
+    # Change this, since using mulitple filename does not make sense.
+    #for filename in filenames:
+    filename = filenames[0]
+    outputName = "{fn}".format(fn=od)
+    fInputH = openner(filename, mode="rt")
+    fsig.build_signature(fInputH, ksize, outputName, force)
 
 
 def relative_entropy(args):
