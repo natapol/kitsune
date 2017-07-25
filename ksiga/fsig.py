@@ -11,6 +11,7 @@ from scipy.interpolate import interp1d
 import h5py
 import numpy as np
 
+import ksiga
 import ksiga.ksignature as ksignature
 from ksiga.ksignature import KmerSignature
 import ksiga.sparse_util as su
