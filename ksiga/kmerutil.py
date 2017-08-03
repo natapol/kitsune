@@ -38,6 +38,8 @@ def kmer_location(kmer):
 
 
 def encode(k):
+    """
+    """
     encoding_map = {"A":0, "C":1, "G":2, "T":3}
     code = 0
     for ch in k:
@@ -59,6 +61,8 @@ def decode(code, length):
 
 
 def guess_front(ksize):
+    """
+    """
     # Guess a front of character, return a result that we could use np.digitize
     # bins = guess_front(8)
     # np.digitize([hash], bins) -> 0 = A, 1 = C, 2 = G, 3 = T
@@ -69,7 +73,7 @@ def guess_front(ksize):
     return np.array([A_lim + 1, C_lim + 1, G_lim + 1])
 
 def trimFront(khashs, ksize):
-    """ Trim front kmer
+    """ Trim k-mer from front
 
     Args:
         khashs (np.array)
@@ -79,6 +83,15 @@ def trimFront(khashs, ksize):
     fHash = khashs - (frontCharHash * (4 ** (ksize - 1)))
     return fHash
 
+def trimBack(khashs):
+    """ Trim k-mer from back
+
+    Args:
+        khashs (np.array)
+    """
+    m = khashs % 4  # Determine what is in the back.
+    bHashs = ((khashs - m)/4).astype(np.int64)
+    return bHashs
 
 def generateMers(size=4):
     """Return a list of mers
@@ -114,7 +127,7 @@ def kmer_hash_emit(seq, ksize, keyfn=encode):
     """
     for i in range(0, len(seq)-ksize+1):
         kmer = seq[i: i+ksize]
-        yield keyfn(kmer)
+        yield keyfn(kmer)[0]
 
 def kmer_hash_emit_rolling(seq, ksize):
     """ Calculate kmer's hash and emit it.

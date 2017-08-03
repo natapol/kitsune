@@ -138,22 +138,12 @@ def _calculate_re_vectorize(array0, array1, array2):
 
     """
 
-    # def _convert_to_front(kmerHash, ksize):
-    #     pass
-
-    # def _convert_to_back(kmerHash, ksize):
-    #     pass
-
-    # def _convert_to_middle(kmerHash, ksize):
-    #     pass
-
     def _calculate_limit(ksize):
         # And then we can use bin to calculate how much to delete from hash
         A_lim = kmerutil.encode("A" + ("T" * (ksize-1)))[0]
         C_lim = int((A_lim * 2) + 1)
         G_lim = int((A_lim * 3) + 2)
         return np.array([A_lim + 1, C_lim + 1, G_lim + 1])
-
 
 
     ksize = int(math.log(array1.shape[1], 4)) + 1  # Calculate kmer from size of array to hold all kmer
@@ -164,16 +154,14 @@ def _calculate_re_vectorize(array0, array1, array2):
     # convertFrontVec = np.vectorize(lambda khash:_convert_to_front(khash, ksize))
     # fHash = convertFrontVec(array0.indices)
     bins = _calculate_limit(ksize)
-    frontCharHash = np.digitize(array0.indices, bins)
-    fHash = array0.indices - (frontCharHash * (4 ** (ksize - 1)))
+    fHash = kmerutil.trimFront(array0.indices, ksize)
     idx = np.argsort(fHash)
     inv_idx = np.argsort(idx)
     fIdx_sorted = su.searchsorted(array1.indices, fHash[idx])
     fIdx = fIdx_sorted[inv_idx]
     FRes = array1.data[fIdx]
     # All merBack
-    m = np.mod(array0.indices, 4)
-    bHash = (array0.indices - m) / 4  # No need to sort since the order will be preserved.
+    bHash = kmerutil.trimBack(array0.indices)
     bIdx = su.searchsorted(array1.indices, bHash)
     BRes = array1.data[bIdx]
 
@@ -396,7 +384,7 @@ def _find_yintercept(x, y, percent):
     #  Check for an intercept
     idx = np.argwhere(np.diff(np.sign(yn - cutoff)) != 0).reshape(-1)
     xIntercept = xn[idx[0]]
-    kmer = xIntercept #  Kmer
+    kmer = xIntercept  #  Suggest intercept.
     return kmer
 
 

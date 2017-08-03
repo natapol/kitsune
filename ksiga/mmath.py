@@ -202,7 +202,7 @@ def sparse_js_divergence(p, q):
     js_div : float
         js divergence between the two distrubtions
     """
-    m = .5 * (p+q)
+    m = .5 * (p+q)  # Sort is intact..
     js_div = .5*sparse_kl_divergence(p, m) + .5*sparse_kl_divergence(q, m)
     return js_div
 
