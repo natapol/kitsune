@@ -151,13 +151,13 @@ def _calculate_re_vectorize(array0, array1, array2):
     # Calculate all index for each level.
     ARes = array0.data  # Obs
     # All merFront
-    # convertFrontVec = np.vectorize(lambda khash:_convert_to_front(khash, ksize))
-    # fHash = convertFrontVec(array0.indices)
     bins = _calculate_limit(ksize)
     fHash = kmerutil.trimFront(array0.indices, ksize)
     idx = np.argsort(fHash)
     inv_idx = np.argsort(idx)
     fIdx_sorted = su.searchsorted(array1.indices, fHash[idx])
+    print(np.where(fHash == -1)[0][0])
+    print(array0.indices[3421140])
     fIdx = fIdx_sorted[inv_idx]
     FRes = array1.data[fIdx]
     # All merBack
@@ -169,8 +169,7 @@ def _calculate_re_vectorize(array0, array1, array2):
     # Use fhash and calculate back hash
     # convertMidVec = np.vectorize(lambda khash:_convert_to_middle(khash, ksize))
     # mHash = convertMidVec(array0.indices)
-    m = np.mod(fHash, 4)
-    mHash = (fHash - m) / 4
+    mHash = kmerutil.trimBack(fHash)
     idx = np.argsort(mHash)
     inv_idx = np.argsort(idx)
     mIdx_sorted = su.searchsorted(array2.indices, mHash[idx])
@@ -441,8 +440,8 @@ def build_signature(fasta, ksize, store, force):
     group = store.create_group(sigName)
     indice, data = kmerutil.build_csr_matrix_from_fasta(fasta, ksize)
     colSize = 4 ** (ksize)
-    group.create_dataset("indices", compression="gzip", compression_opts=5, data=indice)
-    group.create_dataset("data", compression="gzip", compression_opts=5, data=data)
+    group.create_dataset("indices", compression="gzip", compression_opts=5, data=indice, dtype='int64')
+    group.create_dataset("data", compression="gzip", compression_opts=5, data=data, dtype='int64')
     group.create_dataset("shape", data=(1, colSize))
     # Create metadata
     group.attrs["run_date"] = datetime.datetime.now().isoformat()

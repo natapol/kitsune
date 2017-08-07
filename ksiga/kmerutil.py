@@ -89,9 +89,9 @@ def trimBack(khashs):
     Args:
         khashs (np.array)
     """
-    m = khashs % 4  # Determine what is in the back.
-    bHashs = ((khashs - m)/4).astype(np.int64)
-    return bHashs
+    #m = np.mod(array0.indices, 4)  # Check which character is in the back
+    #bHashs = ((khashs - m)/4).astype(np.int64)
+    return khashs // 4
 
 def generateMers(size=4):
     """Return a list of mers
@@ -165,7 +165,7 @@ def build_csr_matrix_from_fasta(fh, ksize):
     for seq in handleCount:
         count += len(seq)
     handleCount.close()
-    emits = np.zeros(count) # At least should be THIS much.
+    emits = np.zeros(count, dtype=np.int64) # At least should be THIS much.
     
     # Initialize iterator again, now to count
     fh.seek(0,0)

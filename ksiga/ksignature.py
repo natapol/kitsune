@@ -121,5 +121,3 @@ def rebuild_sparse_matrix(stores, ksize):
     shape = (rowNum, colNum)
 
     return sps.csr_matrix((data, indices, indptr), shape=shape)
-
-
