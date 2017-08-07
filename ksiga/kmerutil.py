@@ -15,6 +15,7 @@ import Bio.SeqIO as SeqIO
 
 # Global variable
 KMER_ARR = ["A", "C", "G", "T"]
+KSIZE_LIMIT = 31
 
 # Regex to clean sequence data
 NUCLEOTIDE_REGEX = re.compile("[^ATGC]")
@@ -51,7 +52,7 @@ def encode(k):
 def decode(code, length):
     """ Reverse
     """
-    decoding_lst = KMER_ARR
+    decoding_lst = ["A", "C", "G", "T"]
     ret = ''
     for _ in range(length):
         index = code & 3
@@ -79,7 +80,10 @@ def trimFront(khashs, ksize):
         khashs (np.array)
     """
     bins = guess_front(ksize)
-    frontCharHash = np.digitize(khashs, bins)
+    if ksize < 27:
+        frontCharHash = np.digitize(khashs, bins)
+    else:  # digitize have problem with a very large number.
+        np.searchsorted(bins, khashs, side='right')
     fHash = khashs - (frontCharHash * (4 ** (ksize - 1)))
     return fHash
 

@@ -17,6 +17,17 @@ def test_has_indices():
         res = su.has_indices(m, idx)
         assert i == res
 
+    # Some more test matrix
+    data = [1,6,8,10,20,50,100]
+    ind = [0,20,40,60,80,100, 120]
+    indptr = [0,7]
+
+    m = sps.csr_matrix((data, ind, indptr), shape=(1,500))
+
+    for i, idx in enumerate(ind):
+        res = su.has_indices(m, idx)
+        assert i == res
+
 
 def test_sort_indice():
     """ Test if an indice of sprase array still sort after addition.

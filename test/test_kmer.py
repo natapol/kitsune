@@ -46,46 +46,41 @@ def test_guessFront():
     """ Guess nucleotide in front.
     """
     # Testing all edge case.
-    h, s = kmer.encode("AAAAAAAA")
-    guess = np.digitize([h], kmer.guess_front(s))[0]
-    assert guess == 0
+    q = {"AAAAAAAA": 0,
+         "ATTTTTTT": 0,
+         "CAAAAAAA": 1,
+         "CTTTTTTT": 1,
+         "GAAAAAAA": 2,
+         "GTTTTTTT": 2,
+         "TAAAAAAA": 3,
+         "TTTTTTTT": 3}
 
-    h, s = kmer.encode("ATTTTTT")
-    guess = np.digitize([h], kmer.guess_front(s))[0]
-    assert guess == 0
+    for s, a in q.items():
+        h, l = kmer.encode(s)
+        guess = np.digitize([h], kmer.guess_front(l))[0]
+        assert guess == a
 
-    h, s = kmer.encode("CAAAAA")
-    guess = np.digitize([h], kmer.guess_front(s))[0]
-    assert guess == 1
-
-    h, s = kmer.encode("CTTTTTT")
-    guess = np.digitize([h], kmer.guess_front(s))[0]
-    assert guess == 1
-
-    h, s = kmer.encode("GAAAAAAA")
-    guess = np.digitize([h], kmer.guess_front(s))[0]
-    assert guess == 2
-
-    h, s = kmer.encode("GTTTTTT")
-    guess = np.digitize([h], kmer.guess_front(s))[0]
-    assert guess == 2
-
-    h, s = kmer.encode("TAAAAAA")
-    guess = np.digitize([h], kmer.guess_front(s))[0]
-    assert guess == 3
-
-    h, s = kmer.encode("TTTTTTT")
-    guess = np.digitize([h], kmer.guess_front(s))[0]
-    assert guess == 3
 
 def testTrimFront():
     """ Trimming from front of kmer.
     """
-    TEST_STRS = ["AAGACCAGATAC", "CAGACCAGATAC", "GAGACCAGATAC", "TAGACCAGATAC"]
-    for TEST_STR in TEST_STRS:
-        h, s = kmer.encode(TEST_STR)
-        fTrim = kmer.trimFront(h, s)
-        assert kmer.decode(fTrim, s - 1) == "AGACCAGATAC"
+    for i in ["A", "T", "G", "C"]:
+        for j in ["AAAAAA", "TTTTTT"]:
+            TEST_STR = i + j
+            h, s = kmer.encode(TEST_STR)
+            fTrim = kmer.trimFront(h, s)
+            assert kmer.decode(fTrim, s - 1) == j
+    # TEST_STRS = ["AAGACCAGATAC", "CAGACCAGATAC", "GAGACCAGATAC", "TAGACCAGATAC"]
+    # for TEST_STR in TEST_STRS:
+    #     h, s = kmer.encode(TEST_STR)
+    #     fTrim = kmer.trimFront(h, s)
+    #     assert kmer.decode(fTrim, s - 1) == "AGACCAGATAC"
+
+    # Check for the edge case of
+    TEST_STR = "G" + ("T" * 28)
+    h, s = kmer.encode(TEST_STR)
+    fTrim = kmer.trimFront(h, s)
+    assert kmer.decode(fTrim, s - 1) == "T" * 28
 
 def testTrimBack():
     """ Trimming from back of kmer.
