@@ -83,7 +83,7 @@ def trimFront(khashs, ksize):
     if ksize < 27:
         frontCharHash = np.digitize(khashs, bins)
     else:  # digitize have problem with a very large number.
-        np.searchsorted(bins, khashs, side='right')
+        frontCharHash = np.searchsorted(bins, khashs, side='right')
     fHash = khashs - (frontCharHash * (4 ** (ksize - 1)))
     return fHash
 
