@@ -156,8 +156,6 @@ def _calculate_re_vectorize(array0, array1, array2):
     idx = np.argsort(fHash)
     inv_idx = np.argsort(idx)
     fIdx_sorted = su.searchsorted(array1.indices, fHash[idx])
-    print(np.where(fHash == -1)[0][0])
-    print(array0.indices[3421140])
     fIdx = fIdx_sorted[inv_idx]
     FRes = array1.data[fIdx]
     # All merBack
