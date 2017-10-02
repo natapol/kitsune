@@ -113,8 +113,8 @@ def rebuild_sparse_matrix(stores, ksize):
         indices.append(array.indices)
         indptr.append(indptr[-1] + array.data.shape[0])
 
-    data = np.concatenate(data, np.int64)
-    indices = np.concatenate(indices, np.int64)
+    data = np.concatenate(data).astype(np.int64)
+    indices = np.concatenate(indices).astype(np.int64)
 
     rowNum = len(stores)
     colNum = 4 ** ksize
