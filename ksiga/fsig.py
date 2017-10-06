@@ -5,21 +5,17 @@
 """
 
 import math
-import datetime
 
-from scipy.interpolate import interp1d
 import h5py
 import numpy as np
+from scipy.interpolate import interp1d
 
 import ksiga
 import ksiga.ksignature as ksignature
-from ksiga.ksignature import KmerSignature
 import ksiga.sparse_util as su
-from ksiga import kmerutil
-from ksiga import logutil
-
-# So that old codes won't break
-rebuild_sparse_matrix = ksignature.rebuild_sparse_matrix
+from ksiga.ksignature import rebuild_sparse_matrix
+from ksiga import kmerutil, logutil
+from ksiga.ksignature import KmerSignature
 
 
 def calculate_relative_entropy(indexFilename, ksize):
@@ -127,7 +123,7 @@ def _calculate_re(array0, array1, array2):
 
 
 def _calculate_re_vectorize(array0, array1, array2):
-    """ Calculate relative entropy
+    """ Calculate relative entropy using vectorize
 
     Args:
         array1 (TODO): Main array
@@ -225,8 +221,8 @@ def calculate_average_common_feature(stores, ksize):
     csr_matrix.data = np.ones(csr_matrix.data.shape[0], np.int64)  # Convert all number to 1
 
     for i in range(rowNum):
-        initVal = csr_matrix.dot(csr_matrix[i].transpose())  #  Need to delete one that compare to itself
-        initVal[i] = 0
+        initVal = csr_matrix.dot(csr_matrix[i].transpose())
+        initVal[i] = 0  # Need to delete one that compare to itself
         val = initVal.sum()
         vals.append(val)
 
@@ -249,18 +245,50 @@ def calculate_obsff(stores, ksize):
     # Probalbility that kmers exist.
     norm = csr_matrix.sum()
     prob = np.asarray(csr_matrix.sum(axis=0)).squeeze() / norm
-    # Remove zero
-    prob = prob[np.nonzero(prob)]
+    prob = prob[np.nonzero(prob)]  # Remove zero, to use later
     # How many genome they occur
     csr_matrix.data = np.ones_like(csr_matrix.data)
     occurence = np.asarray(csr_matrix.sum(axis=0)).squeeze()
-    occurence = occurence[np.nonzero(occurence)]  #  Remove zero
+    occurence = occurence[np.nonzero(occurence)]  #  Remove zero to use later.
     sites = np.unique(csr_matrix.indices)  # Kmer string
     fn = np.vectorize(kmerutil.decode)
     kmerStr = fn(sites, ksize)
 
     return (prob, occurence, kmerStr)
 
+def calculate_ofc_shannon(stores, ksize):
+    spmatrix = rebuild_sparse_matrix(stores, ksize)
+    prob = np.asarray(spmatrix.sum(axis=0)).squeeze()   # For some reason, vanila sum is a matrix. So we squeeze this
+    shannon = sum(prob * np.log(prob))
+    return shannon
+
+def calculate_ofc(stores, ksize):
+    """ Calculate an observe and expect.
+
+    Args:
+        stores (TODO): TODO
+        ksize (TODO): TODO
+
+    Returns: TODO
+
+    """
+    csr_matrix = rebuild_sparse_matrix(stores, ksize)
+    return _calculate_ocf(csr_matrix)
+
+def _calculate_ocf(spmatrix):
+    """TODO: Docstring for function.
+
+    Args:
+        spmatrix (csr_matrix): TODO
+
+    Returns: TODO
+
+    """
+    unique, count = np.unique(spmatrix.indices, return_counts=True)
+    allPossible = unique.shape[0]
+    numberOfUnique = np.where(count == 1)[0].shape[0]
+
+    return (allPossible, numberOfUnique)
 
 def calculate_cre_kmer(indexFilename, start_k, stop_k):
     """ Calculate CRE and kmer.
@@ -343,25 +371,6 @@ def calculate_ofc_kmer(stores, start_k, stop_k):
 
     return (percentage, kmer)
 
-
-def calculate_ofc(stores, ksize):
-    """ Calculate an observe and expect.
-
-    Args:
-        stores (TODO): TODO
-        ksize (TODO): TODO
-
-    Returns: TODO
-
-    """
-    csr_matrix = rebuild_sparse_matrix(stores, ksize)
-    unique, count = np.unique(csr_matrix.indices, return_counts=True)
-
-    allPossible = unique.shape[0]
-    numberOfUnique = np.where(count == 1)[0].shape[0]
-
-    return (allPossible, numberOfUnique)
-
 #
 #  Working horse functions.
 #
@@ -383,65 +392,3 @@ def _find_yintercept(x, y, percent):
     xIntercept = xn[idx[0]]
     kmer = xIntercept  #  Suggest intercept.
     return kmer
-
-
-
-def _calculate_acf(spmatrix):
-    """TODO: Docstring for function.
-
-    Args:
-        spmatrix (csr_matrix): TODO
-
-    Returns: TODO
-
-    """
-    pass
-
-
-def _calculate_ocf(spmatrix):
-    """TODO: Docstring for function.
-
-    Args:
-        spmatrix (csr_matrix): TODO
-
-    Returns: TODO
-
-    """
-    unique, count = np.unique(spmatrix.indices, return_counts=True)
-    allPossible = unique.shape[0]
-    numberOfUnique = np.where(count == 1)[0].shape[0]
-
-    return (allPossible, numberOfUnique)
-
-
-def build_signature(fasta, ksize, store, force):
-    """ Build signature file from fasta.
-
-    Args:
-        fasta (fh): filehandle for fasta file
-        ksize (int): kmer size
-        store (str): filename
-        force (bool): filename
-
-    Returns: Write a signature into file
-
-    """
-
-    if force:
-        store = h5py.File(store, "w")
-    else:
-        store = h5py.File(store, "a")
-    sigName = "/kmer/{size}".format(size=ksize)
-    if sigName in store:
-        raise KeyError("Kmer is already create")
-
-    group = store.create_group(sigName)
-    indice, data = kmerutil.build_csr_matrix_from_fasta(fasta, ksize)
-    colSize = 4 ** (ksize)
-    group.create_dataset("indices", compression="gzip", compression_opts=5, data=indice, dtype='int64')
-    group.create_dataset("data", compression="gzip", compression_opts=5, data=data, dtype='int64')
-    group.create_dataset("shape", data=(1, colSize))
-    # Create metadata
-    group.attrs["run_date"] = datetime.datetime.now().isoformat()
-    group.attrs["run_version"] = ksiga.__version__
-    group.attrs["run_status"] = "finished"

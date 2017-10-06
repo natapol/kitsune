@@ -7,14 +7,18 @@ import argparse
 import sys
 import os
 import gzip
-import pathlib
+import datetime
 
 import numpy as np
 from sklearn.preprocessing import normalize
 
+from ksiga import ksignature
 from ksiga import logutil
 from ksiga import fsig
 
+
+USAGE = """
+"""
 
 def openner(filename, **kwargs):
     """Try to return a sensible filehandle
@@ -40,7 +44,7 @@ def main():
                 "ofc": observe_feature_frequency,
                 "ofc_kmer": ofc_kmer,
                 "dmatrix": generate_distance_matrix
-                } 
+                }
 
     parser = argparse.ArgumentParser(description="Signature for virus",
                                      usage="""ksiga <command> [<args>]
@@ -80,6 +84,7 @@ def index(args):
     parser.add_argument("-k", "--ksize", required=True, type=int)
     parser.add_argument("-o", "--output")
     parser.add_argument("-f", "--force", action="store_true")
+    parser.add_argument("-r", "--canon", action="store_true", default=False, help="Use cannonical k-mer representation")
     args = parser.parse_args(args)
 
     filenames = args.filenames
@@ -97,7 +102,7 @@ def index(args):
     filename = filenames[0]
     outputName = "{fn}".format(fn=od)
     fInputH = openner(filename, mode="rt")
-    fsig.build_signature(fInputH, ksize, outputName, force)
+    ksignature.build_signature(fInputH, ksize, outputName, force)
 
 
 def relative_entropy(args):
@@ -119,8 +124,12 @@ def relative_entropy(args):
         foh = sys.stdout
     else:
         foh = open(args.output, "w")
-        
+
     relEntropy = fsig.calculate_relative_entropy(args.file, args.ksize)
+
+    # Print metadata
+    print("# input file: {}".format(args.file))
+    print("# Run on {}".format(str(datetime.datetime.now())))
     print(relEntropy, file=foh)
 
 
@@ -166,7 +175,7 @@ def observe_feature_frequency(args):
     Returns: TODO
 
     """
-    import pandas as pd
+    # import pandas as pd
 
     parser = argparse.ArgumentParser()
     parser.add_argument("filenames", nargs="+", help="file(s) of signature")
@@ -177,11 +186,16 @@ def observe_feature_frequency(args):
 
     ksize = args.ksize
     output = args.output
+    outputFH = open(output, "w")
 
-    prob, occ, kmerStr = fsig.calculate_obsff(args.filenames, ksize)
-    df = pd.DataFrame({"kmer": kmerStr, "prob": prob, "occ": occ})
-    df.set_index("kmer", inplace=True)
-    df.to_csv(output, sep="\t")
+    # prob, occ, kmerStr = fsig.calculate_obsff(args.filenames, ksize)
+    # # TODO: We don't need dataframe here.
+    # df = pd.DataFrame({"kmer": kmerStr, "prob": prob, "occ": occ})
+    # df.set_index("kmer", inplace=True)
+    # df.to_csv(output, sep="\t")
+    shannon_size = fsig.calculate_ofc_shannon(args.filenames, ksize)
+    outputLine = "{}\t{}".format(ksize, shannon_size)
+    print(outputLine, file=outputFH)
 
 
 def cre_kmer(args):
@@ -280,7 +294,7 @@ def ofc_kmer(args):
     kmerStart = args.kfrom
     kmerEnd = args.kend
 
-    percentage, suggestKmer = fsig.calculate_ofc_kmer(args.filenames, kmerStart, kmerEnd)
+    percentage, suggestKmer = fsig.calculate_ofc_kmer(filenames, kmerStart, kmerEnd)
 
     print("Suggest k-mer based on OCF value is {}".format(suggestKmer))
 
@@ -292,9 +306,10 @@ def ofc_kmer(args):
 
     # np.savetxt(outHandle, [allPossible, uniq], fmt="%i")
 
-
 def generate_distance_matrix(args):
     """Generate distance matrix base on k-mer
+
+    The output will 
 
     Args:
         args (TODO): TODO
@@ -323,7 +338,6 @@ def generate_distance_matrix(args):
     filenames = args.filenames
     ksize = args.ksize
     outF = args.output
-    n_thread = args.n_thread
 
     if outF is None:
         outHandle = sys.stdout.buffer
