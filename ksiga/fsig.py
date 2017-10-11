@@ -221,6 +221,10 @@ def calculate_average_common_feature(stores, ksize):
     csr_matrix.data = np.ones(csr_matrix.data.shape[0], np.int64)  # Convert all number to 1
 
     for i in range(rowNum):
+        for j in range(rowNum):
+            if i != j:
+                csr_matrix[i].dot(csr_matrix[j])
+
         initVal = csr_matrix.dot(csr_matrix[i].transpose())
         initVal[i] = 0  # Need to delete one that compare to itself
         val = initVal.sum()
