@@ -353,9 +353,19 @@ def generate_distance_matrix(args):
     csr_matrix = fsig.rebuild_sparse_matrix(filenames, ksize)
     rowNum = csr_matrix.shape[0]
 
+    # Normalize data before calculate distance
     csr_matrix_norm = normalize(csr_matrix, norm='l1', axis=1)
 
     result = fn(csr_matrix_norm)
     np.savetxt(outHandle, result)
+
+    # Output for file
+    flistH = open("{}.inputlist".format(outF), 'w')
+    for f in filenames:
+        flistH.write(f)
+        flistH.write("\n")
+
+    # Logging
     logutil.notify("Result is written to {}".format(outF))
+    logutil.notify("Filelist is written to {}".format(outF))
     sys.exit(0)

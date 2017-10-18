@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """ Collection of distance calculation function
- The distance matrix return as a distance array which constructs from column major lower triangle
+ The distance is return as a distance array which constructs 
+ from column major lower triangle, or row-major from upper triangle.
  [0 1 2 3]
  [1 0 4 5] -> [0 1 2 3 4 5 6]
  [2 4 0 6]
@@ -17,6 +18,7 @@ from scipy.spatial.distance import squareform
 from joblib import Parallel, delayed
 
 import ksiga.mmath as mmath
+
 
 def jensen_distance(m, n_thread=2):
     """ Calculate distance matrix using jensen distance
@@ -38,18 +40,21 @@ def jensen_distance(m, n_thread=2):
             result.append(distance)
 
         result = np.array(result)
-    else: # Parallel version
+    else:  # Parallel version
         with Parallel(n_jobs=n_thread, backend="threading") as pool:
-            generator = ((i, j) for i, j in itertools.combinations(range(rowNum), r=2))
+            generator = ((i, j)
+                         for i, j in itertools.combinations(range(rowNum), r=2))
             chunks = _grouper(100000, generator)
             result = pool(delayed(_calculate_chunk)(chunk, m)
-                        for chunk in chunks)
+                          for chunk in chunks)
 
     return np.squeeze(result)
 
 #
 # Helper functions
 #
+
+
 def _calculate_chunk(chunks, matrix):
     """ Calculate js distance in chunk.
     """
@@ -63,7 +68,7 @@ def _calculate_chunk(chunks, matrix):
 
 def _grouper(n, iterable, padvalue=None):
     "_grouper(3, 'abcdefg', 'x') --> ('a','b','c'), ('d','e','f'), ('g','x','x')"
-    return zip_longest(*[iter(iterable)]*n, fillvalue=padvalue)
+    return zip_longest(*[iter(iterable)] * n, fillvalue=padvalue)
 
 #
 # End of Helper functions
@@ -97,8 +102,10 @@ def euclidian_distance(m, n_thread=1):
     da = squareform(dm, checks=False)
     return da
 
+
 def jaccard_distance(csr, n_thread=1, epsilon=1):
     """Calculate distance matrix using jaccard distance
+    Source: https://stackoverflow.com/questions/32805916/compute-jaccard-distances-on-sparse-matrix
 
     Args:
         sm (matrix/sparse matrix): A normalized matrix.
@@ -130,9 +137,7 @@ def jaccard_distance(csr, n_thread=1, epsilon=1):
     return da
 
 
-DISTANCE_FUNCTION = {
-        "jensen" : jensen_distance,
-        "cosine" : cosine_distance,
-        "euclid" : euclidian_distance,
-        "jaccard": jaccard_distance
-        }
+DISTANCE_FUNCTION = {"jensen": jensen_distance,
+                     "cosine": cosine_distance,
+                     "euclid": euclidian_distance,
+                     "jaccard": jaccard_distance}
