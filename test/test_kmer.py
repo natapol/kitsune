@@ -134,11 +134,3 @@ def test_compare_encode():
 
     input3 = "CAGAGCTAG"
     assert test_fn1(input3)  == test_fn2(input3)
-
-def test_check_storage():
-    """ Test if we could accurately guess to number of kmer to store
-    """
-    ksize = 6
-    guess1 = kmer.kmer_location("A" * (ksize+1)) - kmer.kmer_location("A" * ksize)
-    guess2 = kmer.encode("A" * (ksize+1)) - kmer.encode("A" * ksize)
-    assert guess1 == guess2

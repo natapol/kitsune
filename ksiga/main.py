@@ -43,8 +43,8 @@ def main():
                 "acf_kmer": acf_kmer,
                 "ofc": observe_feature_frequency,
                 "ofc_kmer": ofc_kmer,
-                "dmatrix": generate_distance_matrix
-                }
+                "gen_dmatrix": generate_distance_matrix
+               }
 
     parser = argparse.ArgumentParser(description="Signature for virus",
                                      usage="""ksiga <command> [<args>]
@@ -148,6 +148,7 @@ def average_common_feature(args):
     parser.add_argument("filenames", nargs="+", help="file(s) of signature")
     parser.add_argument("-k", "--ksize", required=True, type=int)
     parser.add_argument("-o", "--output")
+    parser.add_argument("--lowmem", action="store_true")
     args = parser.parse_args(args)
 
     filenames = args.filenames
@@ -158,7 +159,13 @@ def average_common_feature(args):
     else:
         outHandle = open(outF, "w")
 
-    acf = fsig.calculate_average_common_feature(args.filenames, args.ksize)
+    # Choose to use low mem but slow, or fast but eat memoery like a whale.
+    if args.lowmem:
+        acf_func = fsig.lowmem_calculate_average_common_feature
+    else:
+        acf_func = fsig.calculate_average_common_feature
+    
+    acf = acf_func(args.filenames, args.ksize)
     acf = np.round(acf, 2)
 
     baseFilenames = (os.path.basename(filename) for filename in filenames)
@@ -175,25 +182,26 @@ def observe_feature_frequency(args):
     Returns: TODO
 
     """
-    # import pandas as pd
 
     parser = argparse.ArgumentParser()
     parser.add_argument("filenames", nargs="+", help="file(s) of signature")
     parser.add_argument("-k", "--ksize", required=True, type=int)
     parser.add_argument("-w", "--wd", default=os.getcwd())
-    parser.add_argument("-o", "--output", required=True)
+    parser.add_argument("-o", "--output")
+    parser.add_argument("--lowmem", action="store_true")
     args = parser.parse_args(args)
 
     ksize = args.ksize
     output = args.output
-    outputFH = open(output, "w")
 
-    # prob, occ, kmerStr = fsig.calculate_obsff(args.filenames, ksize)
-    # # TODO: We don't need dataframe here.
-    # df = pd.DataFrame({"kmer": kmerStr, "prob": prob, "occ": occ})
-    # df.set_index("kmer", inplace=True)
-    # df.to_csv(output, sep="\t")
-    shannon_size = fsig.calculate_ofc_shannon(args.filenames, ksize)
+    outputFH = open(output, "w") if output else sys.stdout
+
+    if args.lowmem:
+        ofc_func = fsig.lowmem_calculate_ofc_shannon
+    else:
+        ofc_func = fsig.calculate_ofc_shannon
+
+    shannon_size = ofc_func(args.filenames, ksize)
     outputLine = "{}\t{}".format(ksize, shannon_size)
     print(outputLine, file=outputFH)
 
@@ -223,7 +231,7 @@ def cre_kmer(args):
     cres = []
     kmers = []
     for filename in filenames:
-        logutil.notify("Working on {}".format(filename))
+        logutil.debug("Working on {}".format(filename))
         cre, kmer = fsig.calculate_cre_kmer(filename, kmerStart, kmerEnd)
         cres.append(cre)
         kmers.append(kmer)
@@ -304,8 +312,6 @@ def ofc_kmer(args):
     else:
         outHandle = open(outF, "wb")  # wb for numpy write
 
-    # np.savetxt(outHandle, [allPossible, uniq], fmt="%i")
-
 def generate_distance_matrix(args):
     """Generate distance matrix base on k-mer
 
@@ -328,13 +334,9 @@ def generate_distance_matrix(args):
     parser.add_argument("-d", "--distance", default="euclid")
     args = parser.parse_args(args)
 
-    fn = distance.DISTANCE_FUNCTION.get(args.distance, None)
+    fn = distance.get_distance_function(args.distance)
 
-    if fn is None:
-        allowDistance = list(distance.DISTANCE_FUNCTION.keys())
-        print(USAGE)
-        exit(1)
-
+    # Delegate to function in distance.
     filenames = args.filenames
     ksize = args.ksize
     outF = args.output
@@ -343,6 +345,7 @@ def generate_distance_matrix(args):
         outHandle = sys.stdout.buffer
     else:
         outHandle = open(outF, "wb")  # wb for numpy write
+
 
     # Check for existence of file.
     for filename in args.filenames:
@@ -369,3 +372,27 @@ def generate_distance_matrix(args):
     logutil.notify("Result is written to {}".format(outF))
     logutil.notify("Filelist is written to {}".format(outF))
     sys.exit(0)
+
+
+def lowmem_generate_distance_matrix(args):
+    """Generate distance matrix base on k-mer. Unlike the normal version counterpart, it relied heavily on looping.
+
+    Args:
+        args (TODO): TODO
+
+    Returns: TODO
+
+    """
+    import ksiga.fsig as fsig
+    from ksiga import distance
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("filenames", nargs="+", help="file(s) of signature")
+    parser.add_argument("-k", "--ksize", required=True, type=int)
+    parser.add_argument("-o", "--output")
+    parser.add_argument("-t", "--n_thread", type=int, default=1)
+    parser.add_argument("-d", "--distance", default="euclid")
+    args = parser.parse_args(args)
+
+    fn = distance.get_distance_function(args.distance)
+    # Temporary array.

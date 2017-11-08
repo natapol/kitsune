@@ -5,3 +5,5 @@ build/
 ksiga.egg-info/
 .cache
 example_data
+dist/
+.vscode/

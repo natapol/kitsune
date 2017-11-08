@@ -9,6 +9,7 @@ import math
 import h5py
 import numpy as np
 from scipy.interpolate import interp1d
+import scipy.sparse as sp
 
 import ksiga
 import ksiga.ksignature as ksignature
@@ -26,9 +27,9 @@ def calculate_relative_entropy(indexFilename, ksize):
     # Check if exists
     store = KmerSignature(indexFilename)
     # Sparse array of ONE row, so it has shape = (1, col)
-    array0 = store.get_kmer(ksize)
-    array1 = store.get_kmer(ksize-1)
-    array2 = store.get_kmer(ksize-2)
+    array0 = store.get_sparse_array(ksize)
+    array1 = store.get_sparse_array(ksize-1)
+    array2 = store.get_sparse_array(ksize-2)
 
     relativeEntropy = _calculate_re_vectorize(array0, array1, array2)
     #relativeEntropy = _calculate_re(array0, array1, array2)
@@ -219,80 +220,138 @@ def calculate_average_common_feature(stores, ksize):
     # 1. http://stackoverflow.com/questions/24566633/which-is-the-best-way-to-multiply-a-large-and-sparse-matrix-with-its-transpose
     # 2. C.dot(C.transpose)
     csr_matrix.data = np.ones(csr_matrix.data.shape[0], np.int64)  # Convert all number to 1
-
+    
     for i in range(rowNum):
-        for j in range(rowNum):
-            if i != j:
-                csr_matrix[i].dot(csr_matrix[j])
-
-        initVal = csr_matrix.dot(csr_matrix[i].transpose())
-        initVal[i] = 0  # Need to delete one that compare to itself
-        val = initVal.sum()
-        vals.append(val)
+        val = csr_matrix.dot(csr_matrix[i].transpose())
+        val[i] = 0
+        vals.append(val.sum())
 
     result = np.array(vals) / norm
 
     return result
 
 
-def calculate_obsff(stores, ksize):
-    """ Calculate an observe and expect.
+def lowmem_calculate_average_common_feature(stores, ksize):
+    """ Instead of loading everything, try iterate over it.
+        It is inefficient, but it is only way to do something of kmer > 13ish.
 
     Args:
-        stores (TODO): TODO
-        ksize (TODO): TODO
-
-    Returns: TODO
-
+        stores (list[str]): File path
     """
-    csr_matrix = rebuild_sparse_matrix(stores, ksize)
-    # Probalbility that kmers exist.
-    norm = csr_matrix.sum()
-    prob = np.asarray(csr_matrix.sum(axis=0)).squeeze() / norm
-    prob = prob[np.nonzero(prob)]  # Remove zero, to use later
-    # How many genome they occur
-    csr_matrix.data = np.ones_like(csr_matrix.data)
-    occurence = np.asarray(csr_matrix.sum(axis=0)).squeeze()
-    occurence = occurence[np.nonzero(occurence)]  #  Remove zero to use later.
-    sites = np.unique(csr_matrix.indices)  # Kmer string
-    fn = np.vectorize(kmerutil.decode)
-    kmerStr = fn(sites, ksize)
+    numStore = len(stores)
+    vals = []
+    norm = numStore - 1
 
-    return (prob, occurence, kmerStr)
+    # Store what already calculate so I don't have to redo everything again.
+    memoize = {}
+    for i in range(numStore):
+        rowVal = 0
+        for j in range(numStore):
+            if i == j:
+                continue
+            if j < i:
+                val = memoize[(j, i)]
+            
+            fi = stores[i]
+            fj = stores[i]
+            mi = KmerSignature(fi).get_sparse_array(ksize)
+            mj = KmerSignature(fj).get_sparse_array(ksize)
+            val = len(set(mi.indices).intersection(mj.indices))
+            # Save result to use later, i always less than
+            # j by the way we organize for loop.
+            memoize[(i, j)] = val
+            rowVal += val
+        
+        vals.append(rowVal)
+    
+    return np.array(vals) / norm
+
 
 def calculate_ofc_shannon(stores, ksize):
+    """
+    """
     spmatrix = rebuild_sparse_matrix(stores, ksize)
-    prob = np.asarray(spmatrix.sum(axis=0)).squeeze()   # For some reason, vanila sum is a matrix. So we squeeze this
-    shannon = sum(prob * np.log(prob))
+    allPossibleFeatures = 4 ** ksize
+    eachGenomeFeatures = spmatrix.getnnz(axis=1)
+    # calculate shannon
+    prob = eachGenomeFeatures / allPossibleFeatures
+    shannon = np.sum(prob * np.log(prob)) * -1
     return shannon
 
-def calculate_ofc(stores, ksize):
-    """ Calculate an observe and expect.
+def lowmem_calculate_ofc_shannon(stores, ksize):
+    # Cannot load a whole matrix at once.
+    allPossibleFeatures = 4 ** ksize
+    shannon = 0
 
-    Args:
-        stores (TODO): TODO
-        ksize (TODO): TODO
+    for storebin in binning(stores):
+        binSp = rebuild_sparse_matrix(storebin, ksize)
+        eachGenomeFeatures = binSp.getnnz(axis=1)
+        # Calculate shannon
+        binProb = eachGenomeFeatures / allPossibleFeatures
+        binAns = np.sum(binProb * np.log(binProb)) * -1
+        shannon += binAns
 
-    Returns: TODO
+    return shannon
+    
 
-    """
-    csr_matrix = rebuild_sparse_matrix(stores, ksize)
-    return _calculate_ocf(csr_matrix)
+def binning(lst, binsize=50):
+    for i in range(0,len(lst), binsize):
+        yield lst[i:i+binsize]
 
-def _calculate_ocf(spmatrix):
-    """TODO: Docstring for function.
+# def calculate_obsff(stores, ksize):
+#     """ Calculate an observe and expect.
 
-    Args:
-        spmatrix (csr_matrix): TODO
+#     Args:
+#         stores (TODO): TODO
+#         ksize (TODO): TODO
 
-    Returns: TODO
+#     Returns: TODO
 
-    """
-    unique, count = np.unique(spmatrix.indices, return_counts=True)
-    allPossible = unique.shape[0]
-    numberOfUnique = np.where(count == 1)[0].shape[0]
+#     """
+#     csr_matrix = rebuild_sparse_matrix(stores, ksize)
+#     # Probalbility that kmers exist.
+#     norm = csr_matrix.sum()
+#     prob = np.asarray(csr_matrix.sum(axis=0)).squeeze() / norm
+#     prob = prob[np.nonzero(prob)]  # Remove zero, to use later
+#     # How many genome they occur
+#     csr_matrix.data = np.ones_like(csr_matrix.data)
+#     occurence = np.asarray(csr_matrix.sum(axis=0)).squeeze()
+#     occurence = occurence[np.nonzero(occurence)]  #  Remove zero to use later.
+#     sites = np.unique(csr_matrix.indices)  # Kmer string
+#     fn = np.vectorize(kmerutil.decode)
+#     kmerStr = fn(sites, ksize)
 
-    return (allPossible, numberOfUnique)
+#     return (prob, occurence, kmerStr)
+
+
+
+# def calculate_ofc(stores, ksize):
+#     """ Calculate an observe and expect.
+
+#     Args:
+#         stores (TODO): TODO
+#         ksize (TODO): TODO
+
+#     Returns: TODO
+
+#     """
+#     csr_matrix = rebuild_sparse_matrix(stores, ksize)
+#     return _calculate_ocf(csr_matrix)
+
+# def _calculate_ocf(spmatrix):
+#     """TODO: Docstring for function.
+
+#     Args:
+#         spmatrix (csr_matrix): TODO
+
+#     Returns: TODO
+
+#     """
+#     unique, count = np.unique(spmatrix.indices, return_counts=True)
+#     allPossible = unique.shape[0]
+#     numberOfUnique = np.where(count == 1)[0].shape[0]
+
+#     return (allPossible, numberOfUnique)
 
 def calculate_cre_kmer(indexFilename, start_k, stop_k):
     """ Calculate CRE and kmer.

@@ -29,13 +29,18 @@ SETUPARG = {
         'author_email': 'yumyai@gmail.com',
         'license': "Apache 2.0",
         'scripts': ["bin/ksiga"],
+        'setup_requires': ['pytest-runner'],
+        'tests_require': ['pytest'],
         'install_requires': ["numpy >= 1.1.0",
-                             "scipy>=0.17.0",
+                             "scipy>=0.18.1",
                              "biopython>=1.68",
+                             "scikit-learn>=0.19.1",
                              "h5py==2.6.0",
-                             "scikit-learn>=0.18.1",
                              "joblib"
                              ],
+        'dependency_links':[
+            "git+https://github.com/scikit-learn/scikit-learn.git/@d551227d97382f42cc7119d89573b66b386bb344#egg=scikit-learn"
+        ],
         'extras_require': {
             'test': ['pytest', 'pytest-cov']
             }

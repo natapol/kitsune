@@ -5,6 +5,7 @@
 
 import os
 import re
+import sys
 import datetime
 
 import Bio.SeqIO as SeqIO
@@ -13,7 +14,25 @@ import h5py
 import scipy.sparse as sps
 
 import ksiga
+import ksiga.logutil as logutil
 from ksiga.kmerutil import kmer_hash_emit_rolling
+
+LOGGER = logutil.getLogger("ksiga")
+
+
+class MultiStores(object):
+    """ K-mer on multiple files
+    """
+
+    def __init__(self):
+        pass
+
+class MultiKmerSignature(object):
+    """ Multi-kmer in one file
+    """
+
+    def __init__(self):
+        pass
 
 
 class KmerSignature(object):
@@ -41,7 +60,7 @@ class KmerSignature(object):
 
         self._pointer = h5py.File(pointer, "r")
 
-    def get_kmer(self, ksize):
+    def get_sparse_array(self, ksize):
         """ Get kmer from pointer.
 
         Args:
@@ -83,6 +102,12 @@ class KmerSignature(object):
         """
         return list(self._pointer["kmer"])
 
+    
+    def _validate(self):
+        # self validate things.
+        raise NotImplementedError("Please")
+
+
     @classmethod
     def fromfilename(cls, filename):
         """ Initialize data from filename"""
@@ -114,7 +139,7 @@ def rebuild_sparse_matrix(stores, ksize):
     indptr.append(0)
 
     for store in stores:
-        array = KmerSignature(store).get_kmer(ksize)
+        array = KmerSignature(store).get_sparse_array(ksize)
         data.append(array.data)
         indices.append(array.indices)
         indptr.append(indptr[-1] + array.data.shape[0])
@@ -127,6 +152,12 @@ def rebuild_sparse_matrix(stores, ksize):
     shape = (rowNum, colNum)
 
     return sps.csr_matrix((data, indices, indptr), shape=shape)
+
+
+def _combine_sparse_array(sparse_array):
+    """ Frugal combine sparse array.
+    """
+    pass
 
 
 def split_sequence(seqioH, ksize):
