@@ -77,10 +77,13 @@ def guess_front(ksize):
 
 
 def trimFront(khashs, ksize):
-    """ Trim k-mer from front
+    """ Calculate a hash of k-mer if the last character is trimmed off.
 
     Args:
-        khashs (np.array)
+        khashs (np.array[Int])
+
+    Returns:
+        khashs (np.array[Int])
     """
     bins = guess_front(ksize)
     if ksize < 27:
@@ -92,10 +95,13 @@ def trimFront(khashs, ksize):
 
 
 def trimBack(khashs):
-    """ Trim k-mer from back
+    """ Calculate a hash of k-mer if the last character is trimmed off.
 
     Args:
-        khashs (np.array)
+        khashs (np.array[Int])
+
+    Returns:
+        khashs (np.array[Int])
     """
     return khashs // 4
 

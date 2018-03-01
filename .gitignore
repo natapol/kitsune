@@ -7,3 +7,4 @@ ksiga.egg-info/
 example_data
 dist/
 .vscode/
+.egg

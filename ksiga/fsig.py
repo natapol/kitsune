@@ -21,8 +21,12 @@ from ksiga.ksignature import KmerSignature
 
 def calculate_relative_entropy(indexFilename, ksize):
     """ Calculate the relative entropy (obs vs expected)
-        The equation is (Something in latex here)
+        The equation is
         Expected (ABCD) =  (obs(ABC) * obs(BCD)) / obs(BC)
+
+    Args:
+        indexFilename (str): TODO
+        ksize (int): TODO   
     """
     # Check if exists
     store = KmerSignature(indexFilename)
@@ -41,7 +45,7 @@ def _calculate_re(array0, array1, array2):
     """ Calculate relative entropy
 
     Args:
-        array1 (TODO): Main array
+        array1 (TODO): Sparse array of k-mer
         array2 (TODO): -1 order array
         array3 (TODO): -2 order array
 
@@ -265,6 +269,16 @@ def lowmem_calculate_average_common_feature(stores, ksize):
         vals.append(rowVal)
     
     return np.array(vals) / norm
+
+def pair_calculate_average_common_feature(store1, store2, ksize):
+    """ Frugal option. Since doing every pair is really slow.
+    """
+
+    mi = KmerSignature(store1).get_sparse_array(ksize)
+    mj = KmerSignature(store2).get_sparse_array(ksize)
+    val = len(set(mi.indices).intersection(mj.indices))
+
+    return val
 
 
 def calculate_ofc_shannon(stores, ksize):

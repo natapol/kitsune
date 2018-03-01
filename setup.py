@@ -32,7 +32,7 @@ SETUPARG = {
         'setup_requires': ['pytest-runner'],
         'tests_require': ['pytest'],
         'install_requires': ["numpy >= 1.1.0",
-                             "scipy>=0.18.1",
+                             "scipy>=0.19.1",
                              "biopython>=1.68",
                              "scikit-learn>=0.19.1",
                              "h5py==2.6.0",
