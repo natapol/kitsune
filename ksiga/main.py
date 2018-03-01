@@ -40,6 +40,7 @@ def main():
                 "relent": relative_entropy,
                 "cre_kmer": cre_kmer,
                 "acf": average_common_feature,
+                "pair_acf": pair_average_common_feature,
                 "acf_kmer": acf_kmer,
                 "ofc": observe_feature_frequency,
                 "ofc_kmer": ofc_kmer,
@@ -172,6 +173,74 @@ def average_common_feature(args):
 
     for filename, val in zip(baseFilenames, acf):
         print("{}\t{}".format(filename, val), file=outHandle)
+
+def pair_average_common_feature(args):
+    """ Calculate an average number of common feature pairwise
+        between one genome against others
+
+    Args:
+        args (TODO): TODO
+
+    Returns: TODO
+
+    """
+    desc = "Calculate average number of common feature"
+    parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument("--in1", help="file(s) of signature")
+    parser.add_argument("--in2", help="file(s) of signature")
+    parser.add_argument("-k", "--ksize", required=True, type=int)
+    parser.add_argument("-o", "--output")
+    args = parser.parse_args(args)
+
+    in1 = args.in1
+    in2 = args.in2
+    ksize = args.ksize
+    outF = args.output
+
+    val = fsig.pair_calculate_average_common_feature(in1, in2, ksize)
+
+    if outF is None:
+        outHandle = sys.stdout
+    else:
+        outHandle = open(outF, "w")
+
+    outHandle.write(str(val))
+
+
+def pair_distance(args):
+    """ Calculate an average number of common feature pairwise
+        between one genome against others
+
+    Args:
+        args (TODO): TODO
+
+    Returns: TODO
+
+    """
+    desc = "Calculate average number of common feature"
+    parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument("--in1", help="file(s) of signature")
+    parser.add_argument("--in2", help="file(s) of signature")
+    parser.add_argument("-k", "--ksize", required=True, type=int)
+    parser.add_argument("-d", "--distance", required=True, type=int)
+    parser.add_argument("-o", "--output")
+    args = parser.parse_args(args)
+
+    in1 = args.in1
+    in2 = args.in2
+    ksize = args.ksize
+    distance = args.distance
+    outF = args.output
+
+    val = fsig.pair_calculate_average_common_feature(in1, in2, ksize)
+
+    if outF is None:
+        outHandle = sys.stdout
+    else:
+        outHandle = open(outF, "w")
+
+    outHandle.write(str(val))
+
 
 def observe_feature_frequency(args):
     """ Calculate an observe feature frequency
