@@ -268,8 +268,8 @@ def lowmem_calculate_average_common_feature(stores, ksize):
 
 
 def calculate_ofc_shannon(stores, ksize):
-    """
-    """
+    """Here
+    """ 
     spmatrix = rebuild_sparse_matrix(stores, ksize)
     allPossibleFeatures = 4 ** ksize
     eachGenomeFeatures = spmatrix.getnnz(axis=1)
