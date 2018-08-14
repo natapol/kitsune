@@ -4,6 +4,6 @@
 KSiga - K-mer analysis toolkit
 """
 
-__author__ = 'Preecha Patumcharoenpol'
+__author__ = 'Natapol Pornputtapong'
 
-from ksiga.version import version as __version__
+from .version import version as __version__

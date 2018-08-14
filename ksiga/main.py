@@ -12,8 +12,7 @@ import numpy as np
 from operator import itemgetter, attrgetter
 
 # import internal library
-import jellyfish as jf
-import matrix
+from . import ksigajf as jf
 
 USAGE = """
 """
@@ -45,7 +44,7 @@ dmatrix <filenames>               Compute distance matrix.
     cmd(sys.argv[2:])
 
 def cumulative_relative_entropy(args):
-    import cre
+    from . import cre
     """ Calculate optimal k-mer through CRE value.
 
     Args:
@@ -73,7 +72,7 @@ def cumulative_relative_entropy(args):
 
 
 def average_common_feature(args):
-    import acf
+    from . import acf
     """ Calculate an average number of common feature pairwise
         between one genome against others
 
@@ -100,7 +99,7 @@ def average_common_feature(args):
         print(outdata)
 
 def observe_feature_occurrence(args):
-    import ofc
+    from . import ofc
     """ Calculate an observe feature frequency
 
     Args:
@@ -127,7 +126,7 @@ def observe_feature_occurrence(args):
         print(outdata)
 
 def generate_distance_matrix(args):
-    import matrix
+    from . import matrix
     """Generate distance matrix base on k-mer
 
     The output will 

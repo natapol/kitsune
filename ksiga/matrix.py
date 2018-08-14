@@ -1,4 +1,4 @@
-import jellyfish as jf
+import ksigajf as jf
 import math
 import collections
 import numpy as np

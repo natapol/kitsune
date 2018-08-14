@@ -1,5 +1,3 @@
-ksig.egg-info
-*.pyc
 version.py
 build/
 ksiga.egg-info/
@@ -7,3 +5,13 @@ ksiga.egg-info/
 example_data
 dist/
 .vscode/
+
+# Compiled python modules.
+*.pyc
+
+# Setuptools distribution folder.
+/dist/
+
+# Python egg metadata, regenerated from source files by setuptools.
+/*.egg-info
+/*.egg
