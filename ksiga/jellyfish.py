@@ -1,57 +1,129 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-""" use jellyfish to manipuate kmer
-"""
-
-import sys, os
+import os
+import sys
+import copy
+import shutil
 import platform
-import itertools
+import tempfile
 import subprocess
+import collections
 import numpy as np
-from pathlib import Path
-
+from tqdm import tqdm
+from scipy.spatial import distance
 
 projectpath = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
+
+class NoInput(Exception):
+    pass
+
+def dict2arg(keylist, **karg):
+    newargdict = {needkey: karg[needkey] for needkey in keylist and needkey in karg}
+    result = []
+    for k, v in items:
+        result.append('--{} {}'.format(k, v))
+    return result
 
 if platform.system() == 'Darwin':
     jellyfishpath = projectpath + "/bin/jellyfish-macosx"
 elif platform.system() == 'Linux':
     jellyfishpath = projectpath + "/bin/jellyfish-linux"
 else:
-    pass 
+    raise
 
-def help(cmd = ''):
-    return subprocess.getoutput('{} {} --help'.format(jellyfishpath, cmd))
+DISTANCE_FUNCTION = {
+                    'braycurtis': distance.braycurtis,
+                    'canberra': distance.canberra,
+                    'chebyshev': distance.chebyshev,
+                    'cityblock': distance.cityblock,
+                    'correlation': distance.correlation,
+                    'cosine': distance.cosine,
+                    'dice': distance.dice,
+                    'euclidean': distance.euclidean,
+                    'hamming': distance.hamming,
+                    'jaccard': distance.jaccard,
+                    'kulsinski': distance.kulsinski,
+                    'matching': distance.matching,
+                    'rogerstanimoto': distance.rogerstanimoto,
+                    'russellrao': distance.russellrao,
+                    'sokalmichener': distance.sokalmichener,
+                    'sokalsneath': distance.sokalsneath,
+                    'sqeuclidean': distance.sqeuclidean,
+                    'yule': distance.yule}
 
-def count(input, indexname, kmer):
-    input_file = Path(input)
-    if input_file.exists():
-        subprocess.run('{0} count -m {1} -s {2} -o {3}_{1}.jf {4}'.format(jellyfishpath, kmer, '100M', output, input), shell=True)
-    else:
-        raise FileNotFoundError("{} is not found.".format(input))
+class Kmercount(collections.Counter):
 
-def query(seq, indexname):
-    file_name = "{}_{}.jf".format(indexname, len(seq))
-    index_file = Path(file_name)
-    if index_file.exists():
-        return subprocess.getoutput('{} query {} {}'.format(jellyfishpath, index_file, seq)).split('\n')[0].split(' ')[1]
-    else:
-        raise FileNotFoundError("The jellyfish index file; {}; is not found.".format(file_name))
+    def __init__(self, fsa, kmer = 21, **karg):
+        if 'thread' not in karg:
+            karg['thread'] = 1
+        if 'lower' not in karg:
+            karg['lower'] = 1
+        if 'bchashsize' not in karg:
+            karg['bchashsize'] = '1G'
+        if 'hashsize' not in karg:
+            karg['hashsize'] = '100M'
 
-def queries(seq, *indexnames):
-    counts = list()
-    for idxn in indexnames:
-        counts.append(query(seq, idxn))
-    return np.asarray(counts, dtype=np.float64)
+        if not os.path.isfile(fsa):
+            raise NoInput('input is missing')
+
+        filebasename = os.path.basename(fsa)
+
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            dumpdata = subprocess.getoutput("""
+                {0} bc -C -m {1} -s {2} -t {4} -o {5}.bc {6}
+                {0} count -C -m {1} -s {3} -t {4} --bc {5}.bc {6} -o {5}.jf
+                {0} dump -c -L {7} {5}.jf
+                """.format(
+                jellyfishpath,
+                kmer,
+                karg['bchashsize'],
+                karg['hashsize'],
+                karg['thread'],
+                os.path.join(tmpdirname, filebasename),
+                fsa,
+                karg['lower']
+            ))
+        # elif 'jf' in karg:
+        #     inputname = karg['jf']
+        #     if not os.path.isfile(inputname):
+        #         raise NoInput('input is missing')
+        #     dumpdata = subprocess.getoutput("""
+        #         {0} dump -c -L {2} {3}
+        #         """.format(
+        #         jellyfishpath,
+        #         karg['thread'],
+        #         karg['lower'],
+        #         inputname
+        #     ))
+
+        datadict = {}
+        for line in dumpdata.split('\n'):
+            dat = line.rstrip().split(' ')
+            datadict[dat[0]] = int(dat[1])
+        
+        super(Kmercount, self).__init__(datadict)
+
+        # assign instance variable
+        self.sum = sum(self.values())
+        self.name = '.'.join(filebasename.split('.')[0:-1]).replace(' ', '_')
+    
+    def __repr__(self):
+        return self.name
+
+    def dist(self, other, dist_func = distance.cosine):
+        a, b = self.norm(other)
+        return dist_func(a, b)
+
+    def norm(self, other):
+        mers = list(self.keys())
+        mers.extend(list(other.keys()))
+        mers = list(set(mers))
+        a = []
+        b = []
+        for mer in mers:
+            a.append(self[mer])
+            b.append(other[mer])
+        return np.array(a), np.array(b)
 
 if __name__ == "__main__":
-    # print(help())
-    # print(count('{}/examples/S288C_reference_sequence_R64-2-1_20150113.fsa'.format(projectpath), 'S288C', 24))
-    # print(query('S288C', 'AAAAAAAAAAAAAAAAAAAAAAAA'))
-    idxnames = ['S288C'] * 28
-    result = np.zeros(len(idxnames))
-    for i in itertools.product('ATCG', repeat=24):
-        result += queries(''.join(i), *idxnames)
-
-    print(list(result))
+    a = Kmercount('./examples/S288C_reference_sequence_R64-2-1_20150113.fsa')
+    b = Kmercount('./examples/ASM170810v1_genomic.fna')
+    print(a.dist(b))

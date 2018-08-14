@@ -7,4 +7,4 @@ build:
 install:
 	python setup.py install
 clean:
-	rm -r build dist kali.egg-info
+	rm -r build dist ksiga.egg-info

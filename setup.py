@@ -36,7 +36,8 @@ SETUPARG = {
                              "biopython>=1.68",
                              "scikit-learn>=0.19.1",
                              "h5py==2.6.0",
-                             "joblib"
+                             "joblib",
+                             "tqdm"
                              ],
         'dependency_links':[
             "git+https://github.com/scikit-learn/scikit-learn.git/@d551227d97382f42cc7119d89573b66b386bb344#egg=scikit-learn"
