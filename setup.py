@@ -9,7 +9,7 @@ import subprocess
 version_py = os.path.join(os.path.dirname(__file__), "ksiga", "version.py")
 
 try:
-    version_git = subprocess.check_output(["git", "describe", "--tags"]).rstrip().replace('.v', '')
+    version_git = subprocess.check_output(["git", "describe", "--tags"]).rstrip().replace('v', '')
     version_git = version_git.decode("utf-8")
 except:
     with open(version_py, "r") as fh:
