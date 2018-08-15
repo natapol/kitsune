@@ -81,7 +81,7 @@ class Kmercount(collections.Counter):
                 fsa,
                 karg['lower']
             ))
-            print(dumpdata)
+            
         # elif 'jf' in karg:
         #     inputname = karg['jf']
         #     if not os.path.isfile(inputname):
