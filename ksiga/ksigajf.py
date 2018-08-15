@@ -10,7 +10,7 @@ import numpy as np
 from tqdm import tqdm
 from scipy.spatial import distance
 
-projectpath = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 class NoInput(Exception):
     pass
@@ -23,9 +23,9 @@ def dict2arg(keylist, **karg):
     return result
 
 if platform.system() == 'Darwin':
-    jellyfishpath = projectpath + "/bin/jellyfish-macosx"
+    jellyfishpath = os.path.join(__location__, 'modules', "jellyfish-macosx")
 elif platform.system() == 'Linux':
-    jellyfishpath = projectpath + "/bin/jellyfish-linux"
+    jellyfishpath = os.path.join(__location__, 'modules', "jellyfish-linux")
 else:
     raise
 
@@ -56,9 +56,9 @@ class Kmercount(collections.Counter):
             karg['thread'] = 1
         if 'lower' not in karg:
             karg['lower'] = 1
-        if 'bchashsize' not in karg:
+        if 'bchashsize' not in karg: #hashsize for jellyfish bc step
             karg['bchashsize'] = '1G'
-        if 'hashsize' not in karg:
+        if 'hashsize' not in karg: #hashsize for jellyfish count step
             karg['hashsize'] = '100M'
 
         if not os.path.isfile(fsa):
