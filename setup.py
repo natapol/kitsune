@@ -24,7 +24,7 @@ setup(
     author='Natapol Pornputtapong',
     author_email='natapol.por@gmail.com',
     license="Apache 2.0",
-    scripts=["bin/jellyfish-linux", "bin/jellyfish-macosx"],
+    scripts=[],
     entry_points = {
         'console_scripts': ['ksiga=ksiga.main:main'],
     },
