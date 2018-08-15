@@ -1,3 +1,3 @@
 include README.rst
-include modules/jellyfish-linux
-include modules/jellyfish-macosx
+include ksiga/modules/jellyfish-linux
+include ksiga/modules/jellyfish-macosx
