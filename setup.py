@@ -9,7 +9,7 @@ def readme():
 
 setup(
     name='ksiga',
-    version='0.9.0',
+    version='0.9.1',
     description='tools for finding an optimal kmer',
     long_description=readme(),
     classifiers=[
