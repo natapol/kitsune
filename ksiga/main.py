@@ -56,6 +56,8 @@ def cumulative_relative_entropy(args):
     desc = "Calculate k-mer from cumulative relative entropy of all genomes"
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("filename", type=str, help="a genome file in fasta format")
+    parser.add_argument("--fast", action="store_true", help="Jellyfish one-pass calculation (faster)")
+    parser.add_argument("--canonical", action="store_true", help="Jellyfish count only canonical mer (use for raw read count)")
     parser.add_argument("-ke", "--kend", required=True, type=int, help="last k-mer")
     parser.add_argument("-kf", "--kfrom", default=4, type=int, help="Calculate from k-mer")
     parser.add_argument("-o", "--output", type=str, help="output filename")
@@ -85,6 +87,8 @@ def average_common_feature(args):
     desc = "Calculate average number of common feature"
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("filenames", nargs="+", help="genome files in fasta format")
+    parser.add_argument("--fast", action="store_true", help="Jellyfish one-pass calculation (faster)")
+    parser.add_argument("--canonical", action="store_true", help="Jellyfish count only canonical mer (use for raw read count)")
     parser.add_argument("-k", "--kmers", nargs="+", required=True, type=int)
     parser.add_argument("-o", "--output", type=str, help="output filename")
     args = parser.parse_args(args)
@@ -112,6 +116,8 @@ def observe_feature_occurrence(args):
     desc = "Calculate observe feature occurrence"
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("filenames", nargs="+", help="genome files in fasta format")
+    parser.add_argument("--fast", action="store_true", help="Jellyfish one-pass calculation (faster)")
+    parser.add_argument("--canonical", action="store_true", help="Jellyfish count only canonical mer (use for raw read count)")
     parser.add_argument("-k", "--kmers", nargs="+", required=True, type=int)
     parser.add_argument("-o", "--output", type=str, help="output filename")
     args = parser.parse_args(args)
@@ -140,6 +146,8 @@ def generate_distance_matrix(args):
     desc = "Calculate a distance matrix"
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("filenames", nargs="+", help="genome files in fasta format")
+    parser.add_argument("--fast", action="store_true", help="Jellyfish one-pass calculation (faster)")
+    parser.add_argument("--canonical", action="store_true", help="Jellyfish count only canonical mer (use for raw read count)")
     parser.add_argument("-k", "--kmer", required=True, type=int)
     parser.add_argument("-o", "--output", type=str, help="output filename")
     parser.add_argument("-t", "--thread", type=int, default=1)
