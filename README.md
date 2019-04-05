@@ -8,9 +8,7 @@ This quantitative measurement could be use to calculate the amount of need k-mer
 ## Installation
 Clone the repository and install it throught pip
 ```
-git clone https://github.com/yumyai/kitsune.git
-cd kitsune
-pip install -e .
+pip install kitsune .
 ```
 
 ## Usage
@@ -23,4 +21,3 @@ kitsune cre genome_fasta/* -ks 5 -ke 10
 kitsune acf genome_fasta/* -ks 5 -ke 10
 kitsune ocf genome_fasta/* -ks 5 -ke 10
 ```
-
