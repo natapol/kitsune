@@ -9,17 +9,17 @@ def readme():
 
 setup(
     name='kitsune',
-    version='0.9.1',
+    version='0.9.2',
     description='tools for finding an optimal kmer',
     long_description=readme(),
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
     ],
     keywords='kitsune',
-    url='https://gitlab.com/natapol.por/kitsune',
+    url='https://gitlab.com/natapol.por/ksiga',
     packages=['kitsune'],
     author='Natapol Pornputtapong',
     author_email='natapol.por@gmail.com',

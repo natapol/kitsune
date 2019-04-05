@@ -1,7 +1,7 @@
-ksiga
+kitsune
 --------
 
 To use (with caution), simply do::
 
-    >>> import ksiga
+    >>> import kitsune
     >>> print funniest.joke()
