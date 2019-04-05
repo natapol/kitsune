@@ -8,4 +8,4 @@ __author__ = 'Natapol Pornputtapong'
 
 from .version import version as __version__
 
-name = "ksiga"
+name = "kitsune"

@@ -68,7 +68,7 @@ class Kmercount(collections.Counter):
 
         with tempfile.TemporaryDirectory() as tmpdirname:
 
-            if karg['fast']:
+            if 'fast' in karg and karg['fast']:
                 # for genome with one step
                 dumpdata = subprocess.getoutput("""
                     {0} count {8} -m {1} -s {3} -t {4} {6} -o {5}.jf
@@ -135,6 +135,6 @@ class Kmercount(collections.Counter):
         return np.array(a), np.array(b)
 
 if __name__ == "__main__":
-    genomea = Kmercount('./examples/S288C_reference_sequence_R64-2-1_20150113.fsa')
-    genomeb = Kmercount('./examples/ASM170810v1_genomic.fna')
-    print(a.dist(b))
+    genomea = Kmercount('../examples/S288C_reference_sequence_R64-2-1_20150113.fsa')
+    genomeb = Kmercount('../examples/ASM170810v1_genomic.fna')
+    print(genomea.dist(genomeb))

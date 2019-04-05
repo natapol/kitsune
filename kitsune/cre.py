@@ -1,4 +1,4 @@
-from . import ksigajf as jf
+from . import kitsunejf as jf
 import math
 from tqdm import tqdm
 

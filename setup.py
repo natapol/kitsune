@@ -8,7 +8,7 @@ def readme():
         return f.read()
 
 setup(
-    name='ksiga',
+    name='kitsune',
     version='0.9.1',
     description='tools for finding an optimal kmer',
     long_description=readme(),
@@ -18,15 +18,15 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
     ],
-    keywords='ksiga',
-    url='https://gitlab.com/natapol.por/ksiga',
-    packages=['ksiga'],
+    keywords='kitsune',
+    url='https://gitlab.com/natapol.por/kitsune',
+    packages=['kitsune'],
     author='Natapol Pornputtapong',
     author_email='natapol.por@gmail.com',
     license="Apache 2.0",
     scripts=[],
     entry_points = {
-        'console_scripts': ['ksiga=ksiga.main:main'],
+        'console_scripts': ['kitsune=kitsune.main:main'],
     },
     test_suite='nose.collector',
     tests_require=['nose', 'nose-cover3'],

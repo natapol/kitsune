@@ -12,7 +12,7 @@ import numpy as np
 from operator import itemgetter, attrgetter
 
 # import internal library
-from . import ksigajf as jf
+from . import kitsunejf as jf
 
 USAGE = """
 """

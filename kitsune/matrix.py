@@ -1,4 +1,4 @@
-import ksigajf as jf
+import kitsunejf as jf
 import math
 import collections
 import numpy as np

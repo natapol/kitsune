@@ -1,6 +1,6 @@
 # from unittest import TestCase
 
-# import ksiga.ksigajf
+# import kitsune.kitsunejf
 
 # class TestJoke(TestCase):
 #     def test_is_string(self):

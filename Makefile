@@ -6,5 +6,8 @@ build:
 	python setup.py build
 install:
 	python setup.py install
+sdist:
+	python setup.py sdist bdist_wheel
+	twine upload dist/*
 clean:
-	rm -r build dist ksiga.egg-info
+	rm -r build dist kitsune.egg-info
