@@ -25,8 +25,8 @@ def main():
                 "dmatrix": generate_distance_matrix
                }
 
-    parser = argparse.ArgumentParser(description="Signature for virus",
-                                     usage="""ksiga <command> [<args>]
+    parser = argparse.ArgumentParser(description="Compute k-mer signature of genome",
+                                     usage="""kitsune <command> [<args>]
 
 Commands can be:
 cre <filename>                    Compute cumulative relative entropy.
@@ -62,7 +62,7 @@ def cumulative_relative_entropy(args):
     parser.add_argument("-kf", "--kfrom", default=4, type=int, help="Calculate from k-mer")
     parser.add_argument("-o", "--output", type=str, help="output filename")
     args = parser.parse_args(args)
-    
+
     outdata = cre.cal_cre(args.filename, **vars(args))
     outdata = sorted(outdata.items(), key=itemgetter(0))
     outdata = '\n'.join(['\t'.join([str(x) for x in data]) for data in outdata])
@@ -135,7 +135,7 @@ def generate_distance_matrix(args):
     from . import matrix
     """Generate distance matrix base on k-mer
 
-    The output will 
+    The output will
 
     Args:
         args (TODO): TODO

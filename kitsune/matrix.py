@@ -1,4 +1,5 @@
-import kitsunejf as jf
+from . import kitsunejf as jf
+
 import math
 import collections
 import numpy as np
