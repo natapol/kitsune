@@ -9,14 +9,16 @@ def readme():
 
 setup(
     name='kitsune',
-    version='0.9.3',
+    version='1.0.0',
     description='tools for finding an optimal kmer',
     long_description=readme(),
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 3.7',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
+        'Operating System :: POSIX :: Linux',
+        'Operating System :: MacOS :: MacOS X',
     ],
     keywords='kitsune',
     url='https://gitlab.com/natapol.por/ksiga',
@@ -28,8 +30,6 @@ setup(
     entry_points = {
         'console_scripts': ['kitsune=kitsune.main:main'],
     },
-    test_suite='nose.collector',
-    tests_require=['nose', 'nose-cover3'],
     include_package_data=True,
     install_requires=["numpy >= 1.1.0",
                         "scipy>=0.18.1",
