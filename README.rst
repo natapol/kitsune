@@ -20,7 +20,7 @@ pip install kitsune
 Kitsune provides three commands for calculate an appropiate k-mer using CRE, ACF, and OCF.
 
 ```
-kitsune cre genome_fasta/* -ks 5 -ke 10
-kitsune acf genome_fasta/* -ks 5 -ke 10
+kitsune cre genome_fasta/* -ks 5 -ke 10\n
+kitsune acf genome_fasta/* -ks 5 -ke 10\n
 kitsune ocf genome_fasta/* -ks 5 -ke 10
 ```

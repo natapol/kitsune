@@ -41,8 +41,25 @@ DISTANCE_FUNCTION = {
     'sokalmichener': distance.sokalmichener,
     'sokalsneath': distance.sokalsneath,
     'sqeuclidean': distance.sqeuclidean,
-    'yule': distance.yule
+    'yule': distance.yule,
+    'jensenshannon': distance.jensenshannon
 }
+
+BOOLEAN_DISTANCE = [
+    distance.dice,
+    distance.hamming,
+    distance.jaccard,
+    distance.kulsinski,
+    distance.rogerstanimoto,
+    distance.russellrao,
+    distance.sokalmichener,
+    distance.sokalsneath,
+    distance.yule
+]
+
+PROB_DISTANCE =[
+    distance.jensenshannon
+]
 
 class Kmercount(collections.Counter):
     """Do X and return a list."""
@@ -120,7 +137,12 @@ class Kmercount(collections.Counter):
     def dist(self, other, dist_func = distance.cosine):
         """Do X and return a list."""
         a, b = self.norm(other)
-        return dist_func(a, b)
+        if dist_func in BOOLEAN_DISTANCE:
+            return dist_func(a.astype(bool), b.astype(bool))
+        elif dist_func in PROB_DISTANCE:
+            return dist_func(a/a.sum(), b/b.sum())
+        else:
+            return dist_func(a, b)
 
     def norm(self, other):
         """Do X and return a list."""

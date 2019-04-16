@@ -151,7 +151,7 @@ def generate_distance_matrix(args):
     parser.add_argument("-k", "--kmer", required=True, type=int)
     parser.add_argument("-o", "--output", type=str, help="output filename")
     parser.add_argument("-t", "--thread", type=int, default=1)
-    parser.add_argument("-d", "--distance", default="cosine")
+    parser.add_argument("-d", "--distance", default="cosine", help="braycurtis, canberra, chebyshev, cityblock, correlation, cosine (default), dice, euclidean, hamming, jaccard, kulsinsk, matching, rogerstanimoto, russellrao, sokalmichener, sokalsneath, sqeuclidean, yule")
     parser.add_argument("-f", "--format", default="phylip")
     args = parser.parse_args(args)
     args.dist_func = jf.DISTANCE_FUNCTION[args.distance]
