@@ -21,7 +21,7 @@ if platform.system() == 'Darwin':
 elif platform.system() == 'Linux':
     jellyfishpath = os.path.join(__location__, 'modules', "jellyfish-linux")
 else:
-    raise
+    raise Exception("Windows are not supported.")
 
 DISTANCE_FUNCTION = {
     'braycurtis': distance.braycurtis,
@@ -44,6 +44,17 @@ DISTANCE_FUNCTION = {
     'yule': distance.yule,
     'jensenshannon': distance.jensenshannon
 }
+
+NUMERIC_DISTANCE = [
+    distance.braycurtis,
+    distance.canberra,
+    distance.chebyshev,
+    distance.cityblock,
+    distance.correlation,
+    distance.cosine,
+    distance.euclidean,
+    distance.sqeuclidean
+]
 
 BOOLEAN_DISTANCE = [
     distance.dice,
@@ -159,4 +170,9 @@ class Kmercount(collections.Counter):
 if __name__ == "__main__":
     genomea = Kmercount('../examples/S288C_reference_sequence_R64-2-1_20150113.fsa')
     genomeb = Kmercount('../examples/ASM170810v1_genomic.fna')
-    print(genomea.dist(genomeb))
+    for distfunc in NUMERIC_DISTANCE:
+        print(genomea.dist(genomeb, distfunc))
+    for distfunc in BOOLEAN_DISTANCE:
+        print(genomea.dist(genomeb, distfunc))
+    for distfunc in PROB_DISTANCE:
+        print(genomea.dist(genomeb, distfunc))
