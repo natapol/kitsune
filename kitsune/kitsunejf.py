@@ -1,3 +1,12 @@
+"""
+.. module:: kitsunejf
+   :platform: Unix, MacOSX
+   :synopsis: interface function to jellyfish
+
+.. moduleauthor:: Natapol Pornputtapong <natapol.p@chula.ac.th>
+
+
+"""
 import os
 import sys
 import copy
@@ -83,7 +92,7 @@ class Kmercount(collections.Counter):
             karg['bchashsize'] = '1G'
         if 'hashsize' not in karg: #hashsize for jellyfish count step
             karg['hashsize'] = '100M'
-        if 'canonical' not in karg:
+        if 'canonical' not in karg or not karg['canonical']:
             canonical = ''
         else:
             canonical = '-C'

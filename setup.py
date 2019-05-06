@@ -9,7 +9,7 @@ def readme():
 
 setup(
     name='kitsune',
-    version='1.1.0',
+    version='1.1.2',
     description='tools for finding an optimal kmer',
     long_description=readme(),
     classifiers=[

@@ -1,13 +1,20 @@
 #!/usr/bin/env python
-
-""" Main entry of the script.
 """
+.. module:: main
+   :platform: Unix, MacOSX
+   :synopsis: Main entry of the script.
 
+.. moduleauthor:: Natapol Pornputtapong <natapol.p@chula.ac.th>
+
+
+"""
 import argparse
 import sys
 import os
 import gzip
 import datetime
+import json
+import collections
 import numpy as np
 from operator import itemgetter, attrgetter
 
@@ -93,7 +100,7 @@ def average_common_feature(args):
     parser.add_argument("-o", "--output", type=str, help="output filename")
     args = parser.parse_args(args)
 
-    outdata = cal_acf(args.filenames, **vars(args))
+    outdata = acf.cal_acf(args.filenames, **vars(args))
     outdata = sorted(outdata.items(), key=itemgetter(0))
     outdata = '\n'.join(['\t'.join([str(x) for x in data]) for data in outdata])
     if args.output is not None:
@@ -122,7 +129,7 @@ def observe_feature_occurrence(args):
     parser.add_argument("-o", "--output", type=str, help="output filename")
     args = parser.parse_args(args)
 
-    outdata = cal_ofc(args.filenames, **vars(args))
+    outdata = ofc.cal_ofc(args.filenames, **vars(args))
     outdata = sorted(outdata.items(), key=itemgetter(0))
     outdata = '\n'.join(['\t'.join([str(x) for x in data]) for data in outdata])
     if args.output is not None:
@@ -158,6 +165,9 @@ def generate_distance_matrix(args):
     outdata = matrix.cal_matrix(args.filenames, **vars(args))
     if args.format == "phylip":
         outdata = str(len(outdata)) + '\n' + '\n'.join([k + '\t' + '\t'.join([str(x) for x in v]) for k, v in outdata.items()])
+    else:
+        outdata = json.dumps(outdata, indent=2)
+        
     if args.output is not None:
         with open(args.output, 'w') as ofhandle:
             ofhandle.write(outdata)

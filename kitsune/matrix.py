@@ -1,3 +1,12 @@
+"""
+.. module:: matrix
+   :platform: Unix, MacOSX
+   :synopsis: module for distant matrix calculation
+
+.. moduleauthor:: Natapol Pornputtapong <natapol.p@chula.ac.th>
+
+
+"""
 from . import kitsunejf as jf
 
 import math

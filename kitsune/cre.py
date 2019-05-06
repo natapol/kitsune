@@ -1,3 +1,12 @@
+"""
+.. module:: cre
+   :platform: Unix, MacOSX
+   :synopsis: module for Cumulative Relative Entropy (CRE) calculation
+
+.. moduleauthor:: Natapol Pornputtapong <natapol.p@chula.ac.th>
+
+
+"""
 from . import kitsunejf as jf
 import math
 from tqdm import tqdm

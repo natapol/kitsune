@@ -1,15 +1,43 @@
+"""
+.. module:: acf
+   :platform: Unix, MacOSX
+   :synopsis: module for Average number of common features (ACF) calculation
+
+.. moduleauthor:: Natapol Pornputtapong <natapol.p@chula.ac.th>
+
+
+"""
 from . import kitsunejf as jf
 import math
 from tqdm import tqdm
 
 def cal_acf(fsas, kmers, **karg):
-    """ Calculate Average number of common features (ACF)
-        acf(l) = sum((common feature of genome i and j at length l)/number of genome - 1)
-    Args:
-        fsas a list of genome file
-        kmers a list of kmer to calculate
+    """Calculate Average number of common features (ACF)
 
-    Returns: dict(kmer: acf)
+    Args:
+        fsas (str):  genome file name(s).
+        kmers (): a list of kmer to calculate.
+
+    Kwargs:
+        state (bool): Current state to be in.
+        thread (int): Number of thread to calculate default 1
+        lower (int): default 1
+        bchashsize (str): hashsize for jellyfish bc step default '1G'
+        hashsize (str): hashsize for jellyfish count step default '100M'
+        canonical (bool): set canonical calculation
+
+    Returns:
+        dict(kmer: acf)
+
+    Raises:
+        AttributeError, KeyError
+
+    A really great idea.  A way you might use me is
+
+    >>> print public_fn_with_googley_docstring(name='foo', state=None)
+    0
+
+    BTW, this always returns 0.  **NEVER** use with :class:`MyPublicClass`.
 
     """
     n = len(fsas)

@@ -1,3 +1,12 @@
+"""
+.. module:: ofc
+   :platform: Unix, MacOSX
+   :synopsis: module for observed feature occurrences (OFC) calculation
+
+.. moduleauthor:: Natapol Pornputtapong <natapol.p@chula.ac.th>
+
+
+"""
 from . import kitsunejf as jf
 import math
 import collections
