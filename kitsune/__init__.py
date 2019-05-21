@@ -7,6 +7,6 @@
 
 __author__ = 'Natapol Pornputtapong'
 
-from .version import version as __version__
+__version__ = '1.1.4'
 
 name = "kitsune"

@@ -9,7 +9,7 @@ def readme():
 
 setup(
     name='kitsune',
-    version='1.1.2',
+    version='1.1.4',
     description='tools for finding an optimal kmer',
     long_description=readme(),
     classifiers=[
@@ -34,7 +34,7 @@ setup(
     install_requires=["numpy >= 1.1.0",
                         "scipy>=0.18.1",
                         "biopython>=1.68",
-                        "tqdm"
+                        "tqdm>=4.32"
                     ],
     zip_safe=False
 )
