@@ -7,6 +7,6 @@
 
 __author__ = 'Natapol Pornputtapong'
 
-__version__ = '1.1.4'
+__version__ = '1.2.4'
 
 name = "kitsune"

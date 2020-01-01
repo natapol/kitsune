@@ -15,20 +15,20 @@ import numpy as np
 from tqdm import tqdm
 from operator import attrgetter
 
-def cal_matrix(fsas, kmer, dist_func=jf.DISTANCE_FUNCTION['cosine'], **karg):
+def cal_matrix(fsas, k_mer, dist_func, **karg):
     result = collections.OrderedDict()
     counters = []
     n = len(fsas)
     # create kmercounter
-    for fsa in tqdm(fsas):
-        counters.append(jf.Kmercount(fsa, **karg))
+    for fsa in tqdm(fsas, desc="k-mer counting"):
+        counters.append(jf.Kmercount(fsa, k_mer, **karg))
 
     sorted(counters, key=attrgetter('name'))
 
     for counter in counters:
         result[counter.name] = [0] * n
 
-    for pri_idx, pri_counter in enumerate(counters):
+    for pri_idx, pri_counter in tqdm(enumerate(counters), desc="distant calculation"):
         for sec_idx in range(pri_idx + 1, n):
             sec_counter = counters[sec_idx]
             dist = pri_counter.dist(sec_counter, dist_func)

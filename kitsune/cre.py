@@ -11,7 +11,7 @@ from . import kitsunejf as jf
 import math
 from tqdm import tqdm
 
-def cal_cre(fsa, kend, kfrom=4, **karg):
+def cal_cre(fsa, kend, kfrom, **karg):
     """ Calculate Cumulative Relative Entropy (CRE)
         CRE = sum(RE from kmer to infinite)
     Args:

@@ -13,19 +13,19 @@ import collections
 import numpy as np
 from tqdm import tqdm
 
-def cal_ofc(fsas, kmers, **karg):
+def cal_ofc(fsas, k_mers, **karg):
     """ Calculate shannon entropy of observed feature occurrences (OFC)
         ofc(l) = -sum(p ln p)
     Args:
         fsa a genome file
-        kmers a list of kmer to calculate
+        k_mers a list of kmer to calculate
 
     Returns: float shannon entropy
 
     """
     result = {}
     
-    for kmer in tqdm(kmers):
+    for kmer in tqdm(k_mers):
         keys = []
         for fsa in fsas:
             keys.extend(list(jf.Kmercount(fsa, kmer, **karg).keys()))
