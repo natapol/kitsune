@@ -2,9 +2,9 @@
 
 # KITSUNE: K-mer-length Iterative Selection for UNbiased Ecophylogenomics
 
-KITSUNE is a toolkit for evaluate the lenght of optimal k-mer length in a given genome dataset for alignment-free phylogenimic analysis.
+KITSUNE is a toolkit for evaluation of the lenght of k-mer in a given genome dataset for alignment-free phylogenimic analysis.
 
-K-mer based approach is simple and fast yet has been widely used in many applications including biological sequence comparison. However, selection of an appropriate k-mer length to obtain a good information content for comparison is normally overlooked. Therefore, we have developed KITSUNE to aid k-mer length selection process based on a three steps aproach (doi: 10.1038/srep40712 (2017). 
+K-mer based approach is simple and fast yet has been widely used in many applications including biological sequence comparison. However, selection of an appropriate k-mer length to obtain a good information content for comparison is normally overlooked. Therefore, we have developed KITSUNE to aid k-mer length selection process based on a three steps aproach (https://www.nature.com/articles/srep40712). 
 
 KITSUNE uses Jellyfish software (doi:10.1093/bioinformatics/btr011) for k-mer counting. Thanks to Jellyfish developer.
 
