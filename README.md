@@ -1,4 +1,4 @@
-add logo here
+(https://github.com/natapol/kitsune/blob/master/logoKITSUNE.png)
 
 # KITSUNE: K-mer-length Iterative Selection for UNbiased Ecophylogenomics
 
