@@ -26,27 +26,25 @@ pip install kitsune .
 
 ## Usage
 
-### Calculate CRE, ACF, and OFC value for specific kmer
+### Calculate CRE, ACF, and OFC value for specific kmer.
 Kitsune provides three commands to calculate an appropiate k-mer using CRE, ACF, and OCF.
 
 ```
 kitsune cre genome_fasta/* -ks 5 -ke 10
 kitsune acf genome_fasta/* -ks 5 -ke 10
 kitsune ocf genome_fasta/* -ks 5 -ke 10
-
 ```
 
-### Calculate genomic distance at specific k-mer from kmer frequency vectors of a pair of genome
+### Calculate genomic distance at specific k-mer from kmer frequency vectors of two of genomes.
 
 Kitsune provides a commands to calculate genomic distance using different distance estimation method.
 
 ```
 kitsune dmatrix genome1.fna genome2.fna -k 17 -d jaccard --canonical --fast -o output.txt
 kitsune dmatrix genome1.fna genome2.fna -k 17 -d hensenshannon --canonical --fast -o output.txt
-
 ```
 
-### Find optimum k-mer from a given set of genome
+### Find optimum k-mer from a given set of genome.
 
 Kitsune provides a comand to find optimum k-mer length in agiven set of genome. 
 
