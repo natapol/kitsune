@@ -41,7 +41,7 @@ calculate distance .....
 
 Run script to find optimum k-mer length
 
-[Download]("") 
+[Download]("examples/S288C_reference_sequence_R64-2-1_20150113.fsa.gz") 
 
 -i : path to list of genome files
 
