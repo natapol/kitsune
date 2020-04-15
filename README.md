@@ -11,7 +11,7 @@ KITSUNE uses Jellyfish software (doi:10.1093/bioinformatics/btr011) for k-mer co
 KITSUNE will calculte the three matrices across considered k-emer range :
 (1)	Cumulative Relative Entropy (CRE),
 (2) Averrage number of Common Feature (ACF),
-(3) Obserb Feature Occurance (OCF) 
+(3) Obserb Common Feature (OCF) 
 
 Moreverver, KITSUNE also provides various genomic distance calculations from the k-mer frequnce vectors that can be used for species identifiction or phylogenomic tree construction.  
 
