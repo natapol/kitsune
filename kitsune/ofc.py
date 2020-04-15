@@ -13,7 +13,7 @@ import collections
 import numpy as np
 from tqdm import tqdm
 
-def cal_ofc(fsas, k_mers, **karg):
+def cal_ofc(fsas, kmer, **karg):
     """ Calculate shannon entropy of observed feature occurrences (OFC)
         ofc(l) = -sum(p ln p)
     Args:
@@ -25,14 +25,14 @@ def cal_ofc(fsas, k_mers, **karg):
     """
     result = {}
     
-    for kmer in tqdm(k_mers):
-        keys = []
-        for fsa in fsas:
-            keys.extend(list(jf.Kmercount(fsa, kmer, **karg).keys()))
+    #for kmer in tqdm(k_mers):
+    keys = []
+    for fsa in fsas:
+        keys.extend(list(jf.Kmercount(fsa, kmer, **karg).keys()))
         
-        count_feature = list(collections.Counter((collections.Counter(keys).values())).values())
-        lnp = np.log2(count_feature) - (kmer * 2)
-        result[kmer] = np.sum(np.exp2(lnp) * lnp) * -1
+    count_feature = list(collections.Counter((collections.Counter(keys).values())).values())
+    lnp = np.log2(count_feature) - (kmer * 2)
+    result[kmer] = np.sum(np.exp2(lnp) * lnp) * -1
 
     return result
 

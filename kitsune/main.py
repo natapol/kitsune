@@ -18,12 +18,12 @@ import json
 import collections
 import numpy as np
 from operator import itemgetter, attrgetter
-from itertools import combinations, chain
+from itertools import combinations, chain, islice
 from collections import Counter
 import multiprocessing as mp
-
 # import internal library
 from . import kitsunejf as jf
+from tqdm import *
 
 
 USAGE = """
@@ -45,7 +45,7 @@ Commands can be:
 cre <filename>                    Compute cumulative relative entropy.
 acf <filenames>                   Compute average number of common feature between signatures.
 ofc <filenames>                   Compute observed feature frequencies.
-kopt <filenames>                  Compute recommended kmer length .
+kopt <filenames>                  Compute optimal kmer and generate histograms .
 dmatrix <filenames>               Compute distance matrix.
 """)
     parser.add_argument('command')
@@ -159,17 +159,22 @@ def generate_distance_matrix(args):
     """
     desc = "Calculate a distance matrix"
     parser = argparse.ArgumentParser(description=desc)
-    parser.add_argument("filenames", nargs="+", help="genome files in fasta format")
+    parser.add_argument("filenames", nargs="*", help="genome files in fasta format")
     parser.add_argument("--fast", action="store_true", help="Jellyfish one-pass calculation (faster)")
     parser.add_argument("--canonical", action="store_true", help="Jellyfish count only canonical mer (use for raw read count)")
     parser.add_argument("-k", "--kmer", required=True, type=int)
+    parser.add_argument("-i", "--input", type=str, help="list of genome files in txt")
     parser.add_argument("-o", "--output", type=str, help="output filename")
     parser.add_argument("-t", "--thread", type=int, default=1)
-    parser.add_argument("-d", "--distance", default="cosine", help="braycurtis, canberra, chebyshev, cityblock, correlation, cosine (default), dice, euclidean, hamming, jaccard, kulsinsk, matching, rogerstanimoto, russellrao, sokalmichener, sokalsneath, sqeuclidean, yule, mash, jaccarddistp")
+    parser.add_argument("-d", "--distance", default="cosine", help="braycurtis, canberra, jsmash, chebyshev, cityblock, correlation, cosine (default), dice, euclidean, hamming, jaccard, kulsinsk, matching, rogerstanimoto, russellrao, sokalmichener, sokalsneath, sqeuclidean, yule, mash, jaccarddistp")
     parser.add_argument("-f", "--format", default="phylip")
     args = parser.parse_args(args)
     args.distance_func = jf.DISTANCE_FUNCTION[args.distance]
-    outdata = matrix.cal_matrix(args.filenames, args.kmer, jf.DISTANCE_FUNCTION[args.distance], **vars(args))
+    if args.input:
+        genomeList = open(args.input, "r").read().strip().split("\n")
+        outdata = matrix.cal_matrix(genomeList, args.kmer, jf.DISTANCE_FUNCTION[args.distance], **vars(args))
+    else:
+        outdata = matrix.cal_matrix(args.filenames, args.kmer, jf.DISTANCE_FUNCTION[args.distance], **vars(args))
     if args.format == "phylip":
         outdata = str(len(outdata)) + '\n' + '\n'.join([k + '\t' + '\t'.join([str(x) for x in v]) for k, v in outdata.items()])
     else:
@@ -205,13 +210,18 @@ def kopt_acf(p,args):           ##################### kmer optimal acf #########
     outdata_acf = sorted(outdata_acf.items(), key=itemgetter(0))
     return outdata_acf
 
-def kopt_ofc(genomeList, kmer, args):
+
+def kopt_ofc(genomeList,kmer, args):
     from . import kopt
     outdata_ofc = kopt.cal_ofc(genomeList,kmer, **vars(args))
     outdata_ofc = sorted(outdata_ofc.items(), key=itemgetter(0))
     return outdata_ofc
 
-def final_results(acf_res, outdata_cre, outdata_ofc): #################### some calculations for acf, ofc & cre #########
+def chunk(it, size):
+    it = iter(it)
+    return iter(lambda: tuple(islice(it, size)), ())
+
+def final_results(acf_res, outdata_cre, outdata_ofc): #################### some calculations for acf & cre #########
     outdata_ac, outdata_cr, res, result, outdata_of = ([] for i in range(5))
     outdata_of= '\n'.join(['\t'.join([str(x) for x in data]) for data in outdata_ofc])
     ofc_max = max([x[1] for x in outdata_ofc])
@@ -259,28 +269,29 @@ def kmer_optimal(args):               ################## kmer_optimal ##########
         combs = combinations(genomeList,2)
         genLen = len(genomeList)
         combLen = float(len(list(combinations(genomeList,2))))
-      
+    
         ######################## multiprocessing for cre ####################################
         outdata_cre = []
-        pool = mp.Pool()
-        for l in range(genLen):
-            outdata_cre.append(pool.apply_async(kopt_cre, args=(l,genomeList,args)))
-        ######################## multiprocessing for acf #####################################
         acf_res = []
-        for p in combs:
-            acf_res.append(pool.apply_async(kopt_acf, args=(p,args)))
- 
-        ######i################# multiprocessing for observed feature occurrence #############
-        outdata_ofc = []
+        pool = mp.Pool()
+        ##############changes        
+
+        acf_res = [pool.apply_async(kopt_acf, args=(p,args)) for p in combs]
+        outdata_cre = [pool.apply_async(kopt_cre, args=(l,genomeList,args)) for l in range(genLen)]
+           
+        ######i################# observed feature occurrence #################################
+
         for kmer in range(args.ksmall, args.klarge+1):
             outdata_ofc.append(pool.apply_async(kopt_ofc, args=(genomeList, kmer,args)))
-
         pool.close()
         pool.join()
-        outdata_ofc = list(chain(*[result.get() for result in outdata_ofc]))
-        outdata_cre = list(chain(*[result.get() for result in outdata_cre]))
-        acf_res = list(chain(*[result.get() for result in acf_res]))
-
+    outdata_ofc = list(chain(*[result.get() for result in outdata_ofc]))
+    outdata_cre = list(chain(*[result.get() for result in outdata_cre]))
+    acf_res = list(chain(*[result.get() for result in acf_res]))
+    outdata_of, outdata_cr, outdata_ac = ([] for i in range(3)) 
+    outdata_of= '\n'.join(['\t'.join([str(x) for x in data]) for data in outdata_ofc])
+    outdata_ac= '\n'.join(['\t'.join([str(x) for x in data]) for data in acf_res])
+    outdata_cr= '\n'.join(['\t'.join([str(x) for x in data]) for data in outdata_cre])
     final = final_results(acf_res, outdata_cre, outdata_ofc)
     result2 = filter(final[1], genLen)
     acf_kmax2 = filter(final[0], combLen)

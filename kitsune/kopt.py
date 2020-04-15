@@ -16,10 +16,7 @@ def cal_cre(fsa, ksmall, klarge, **karg):
     Returns: dict(kmer: CRE)
 
     """
-
-    if ksmall - 7 >= 0:
-        ksmall = ksmall - 2
-    
+  
     a0 = None
     a1 = None
     a2 = None

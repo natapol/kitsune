@@ -43,6 +43,12 @@ def mash(u, v, kmer):
     j = 1e-100 if j <= 0 else j
     return (-1/kmer) * math.log(2*j/(1+j))
 
+def jsmash(u, v, kmer):
+    j = 1 - distance.jensenshannon(u, v)
+    j = 1e-100 if j <= 0 else j
+    return (-1/kmer) * math.log(2*j/(1+j))
+
+
 def nCr(n,r):
     print(n,r)
     logncr = loggamma(n+1) - loggamma(r+1) - loggamma(n-r+1)
@@ -117,6 +123,7 @@ DISTANCE_FUNCTION = {
     'yule': distance.yule,
     'jensenshannon': distance.jensenshannon,
     'mash': mash,
+    'jsmash' : jsmash,
     'jaccarddistp': jaccarddistp
 }
 
@@ -228,6 +235,8 @@ class Kmercount(collections.Counter):
         a, b = self.norm(other)
         if dist_func is mash:
             return dist_func(a.astype(bool), b.astype(bool), self.kmer)
+        elif dist_func is jsmash:
+            return dist_func(a.astype(float)/a.sum(), b.astype(float)/b.sum(), self.kmer)
         elif dist_func in BOOLEAN_DISTANCE:
             return dist_func(a.astype(bool), b.astype(bool))
         elif dist_func in PROB_DISTANCE:
