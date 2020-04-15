@@ -1,6 +1,6 @@
 # KITSUNE: K-mer-length Iterative Selection for UNbiased Ecophylogenomics
 
-![KISUNE](https://github.com/natapol/kitsune/blob/master/logoKITSUNE.png?v&s=50)
+<img src="https://github.com/natapol/kitsune/blob/master/logoKITSUNE.png" width="50%">
 
 KITSUNE is a toolkit for evaluation of the lenght of k-mer in a given genome dataset for alignment-free phylogenimic analysis.
 
