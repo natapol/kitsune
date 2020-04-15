@@ -114,7 +114,6 @@ DISTANCE_FUNCTION = {
     'hamming': distance.hamming,
     'jaccard': distance.jaccard,
     'kulsinski': distance.kulsinski,
-    'matching': distance.matching,
     'rogerstanimoto': distance.rogerstanimoto,
     'russellrao': distance.russellrao,
     'sokalmichener': distance.sokalmichener,
