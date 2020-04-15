@@ -26,22 +26,33 @@ pip install kitsune .
 
 ## Usage
 
-### Calculate k-mer from CRE, ACF, and OFC value
-Kitsune provides three commands for calculate an appropiate k-mer using CRE, ACF, and OCF.
+### Calculate CRE, ACF, and OFC value for specific kmer
+Kitsune provides three commands to calculate an appropiate k-mer using CRE, ACF, and OCF.
 
 ```
 kitsune cre genome_fasta/* -ks 5 -ke 10
 kitsune acf genome_fasta/* -ks 5 -ke 10
 kitsune ocf genome_fasta/* -ks 5 -ke 10
 
-calculate distance .....
 ```
 
-### Example
+### Calculate genomic distance at specific k-mer from kmer frequency vectors of a pair of genome
 
-Run script to find optimum k-mer length
+Kitsune provides a commands to calculate genomic distance using different distance estimation method.
 
-[Download]("examples/S288C_reference_sequence_R64-2-1_20150113.fsa.gz") 
+```
+kitsune dmatrix genome1.fna genome2.fna -k 17 -d jaccard --canonical --fast -o output.txt
+kitsune dmatrix genome1.fna genome2.fna -k 17 -d hensenshannon --canonical --fast -o output.txt
+
+```
+
+### Find optimum k-mer from a given set of genome
+
+Kitsune provides a comand to find optimum k-mer length in agiven set of genome. 
+
+First download the example files.[Download]("https://github.com/natapol/kitsune/blob/master/examaple_viral_genomes.zip") 
+
+Then use kitsune kopt command
 
 -i : path to list of genome files
 
@@ -51,7 +62,8 @@ Run script to find optimum k-mer length
 
 -o: output file
 
+**Please be aware that this comand will use big computational resources when large number of genomes and/or lrage geenome siz are used as the input.    
+
 ```
 kitsune kopt -i genome_list -ks 7 -kl 15 --canonical --fast -o output.txt
-
 ```
