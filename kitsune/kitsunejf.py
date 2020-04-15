@@ -39,23 +39,29 @@ else:
     raise Exception("Windows are not supported.")
 
 def mash(u, v, kmer):
+    """Do X and return a list."""
     j = 1 - distance.jaccard(u, v)
     j = 1e-100 if j <= 0 else j
     return (-1/kmer) * math.log(2*j/(1+j))
 
 def jsmash(u, v, kmer):
+    """Do X and return a list."""
     j = 1 - distance.jensenshannon(u, v)
     j = 1e-100 if j <= 0 else j
     return (-1/kmer) * math.log(2*j/(1+j))
 
 
-def nCr(n,r):
-    print(n,r)
+def nCr(n, r):
+    """
+    Calculate combinatorial using gamma funcion for huge number
+    """
     logncr = loggamma(n+1) - loggamma(r+1) - loggamma(n-r+1)
-    print(logncr)
     return math.exp(logncr)
 
 def jaccarddistp(u, v):
+    """
+    Do X and return a list.
+    """
     m = len(u)
     pu = u.sum()/m
     pv = v.sum()/m
@@ -64,13 +70,13 @@ def jaccarddistp(u, v):
 
     expectation = ((pu*pv)/(pu+pv-pu*pv))
 
-    j_obs = np.logical_and(u,v).sum() / np.logical_or(u,v).sum() - expectation
+    j_obs = np.logical_and(u, v).sum() / np.logical_or(u, v).sum() - expectation
 
-    if(pu==1 or pv==1 or u.sum() == len(u) or v.sum() == len(v)):
+    if(pu == 1 or pv == 1 or u.sum() == len(u) or v.sum() == len(v)):
         warnings.warn("One or both input vectors contain only 1's.", Warning)
         degenerate = True
 
-    if(pu==0 or pv==0 or u.sum() == 0 or v.sum() == 0):
+    if(pu == 0 or pv == 0 or u.sum() == 0 or v.sum() == 0):
         warnings.warn("One or both input vectors contain only 0's", Warning)
         degenerate = True
 
@@ -94,11 +100,11 @@ def jaccarddistp(u, v):
     # )
     # Compute p-value using an asymptotic approximation
 
-    q = [pu*pv,pu+pv-2*pu*pv]
+    q = [pu*pv, pu+pv-2*pu*pv]
     qq = q[0] + q[1]
     sigma = q[0] * q[1] * (1-q[0]) / (qq ** 3)
     norm = math.sqrt(m) * j_obs / math.sqrt(sigma)
-    return chi2.pdf(norm*norm,1)
+    return chi2.pdf(norm*norm, 1)
 
 
 
