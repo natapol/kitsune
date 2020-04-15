@@ -39,4 +39,14 @@ calculate distance .....
 
 ### Example
 
-xyz
+Run script to find optimum k-mer length
+
+-i : path to list of genome files
+-ks: The smallest kmer-length to consider
+-kl: The largest kmer-length to consider
+-o: output file
+
+```
+kitsune kopt -i genome_list -ks 7 -kl 15 --canonical --fast -o output.txt
+
+```
