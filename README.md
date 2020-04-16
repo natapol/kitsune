@@ -3,6 +3,7 @@
 <img src="https://github.com/natapol/kitsune/blob/master/logoKITSUNE.png" width="40%">
 
 [![PyPI version](https://badge.fury.io/py/kitsune.svg)](https://badge.fury.io/py/kitsune)
+![Upload Python Package](https://github.com/natapol/kitsune/workflows/Upload%20Python%20Package/badge.svg)
 
 KITSUNE is a toolkit for evaluation of the lenght of k-mer in a given genome dataset for alignment-free phylogenimic analysis.
 
