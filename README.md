@@ -1,12 +1,14 @@
 # KITSUNE: K-mer-length Iterative Selection for UNbiased Ecophylogenomics
 
-<img src="https://github.com/natapol/kitsune/blob/master/logoKITSUNE.png" width="50%">
+<img src="https://github.com/natapol/kitsune/blob/master/logoKITSUNE.png" width="40%">
+
+[![PyPI version](https://badge.fury.io/py/kitsune.svg)](https://badge.fury.io/py/kitsune)
 
 KITSUNE is a toolkit for evaluation of the lenght of k-mer in a given genome dataset for alignment-free phylogenimic analysis.
 
 K-mer based approach is simple and fast yet has been widely used in many applications including biological sequence comparison. However, selection of an appropriate k-mer length to obtain a good information content for comparison is normally overlooked. Therefore, we have developed KITSUNE to aid k-mer length selection process based on a three steps aproach described in [Viral Phylogenomics Using an Alignment-Free Method: A Three-Step Approach to Determine Optimal Length of k-mer](https://www.nature.com/articles/srep40712).
 
-KITSUNE uses Jellyfish software [Jellyfish](https://academic.oup.com/bioinformatics/article/27/6/764/234905) for k-mer counting. Thanks to Jellyfish developer.
+KITSUNE uses Jellyfish software for k-mer counting. Thanks to Jellyfish developer. [Citation](https://academic.oup.com/bioinformatics/article/27/6/764/234905)
 
 KITSUNE will calculte the three matrices across considered k-emer range :
 
@@ -21,7 +23,7 @@ If you use KITSUNE in your research, please cite:
 
 ## Installation
 
-Clone the repository and install it throught pip
+Install throught pip:
 
 ```bash
 pip install kitsune
@@ -31,7 +33,7 @@ pip install kitsune
 
 ### Calculate CRE, ACF, and OFC value for specific kmer
 
-Kitsune provides three commands to calculate an appropiate k-mer using CRE, ACF, and OCF.
+Kitsune provides three commands to calculate an appropiate k-mer using CRE, ACF, and OCF:
 
 ```bash
 kitsune cre genome_fasta/* -ks 5 -ke 10
@@ -66,6 +68,8 @@ yule             | Yule dissimilarity
 mash             | MASH distance
 jsmash           | MASH Jensen-Shannon distance
 jaccarddistp     | Jaccard-Needham dissimilarity Probability
+
+Example of choosing distance option:
 
 ```bash
 kitsune dmatrix genome1.fna genome2.fna -k 17 -d jaccard --canonical --fast -o output.txt
