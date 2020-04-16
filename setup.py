@@ -14,7 +14,7 @@ def readme():
         return f.read()
 
 # The full version, including alpha/beta/rc tags.
-release = re.sub('^v', '', os.popen('git describe').read().strip())
+release = re.sub('^v', '', os.popen('git describe --tags').read().strip())
 
 setup(
     name='kitsune',
