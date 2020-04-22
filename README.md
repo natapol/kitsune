@@ -87,8 +87,6 @@ Then use kitsune kopt command
 
 -i : path to list of genome files
 
--ks: The smallest kmer-length to consider
-
 -kl: The largest kmer-length to consider
 
 -o: output file
