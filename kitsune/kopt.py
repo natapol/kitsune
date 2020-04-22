@@ -5,7 +5,7 @@ from tqdm import tqdm
 import numpy as np
 import collections
 
-def cal_cre(fsa, ksmall, klarge, **karg):
+def cal_cre(fsa, kl, **karg):
     """ Calculate Cumulative Relative Entropy (CRE)
         CRE = sum(RE from kmer to infinite)
     Args:
@@ -16,7 +16,8 @@ def cal_cre(fsa, ksmall, klarge, **karg):
     Returns: dict(kmer: CRE)
 
     """
-  
+    ksmall = 4
+    klarge = kl
     a0 = None
     a1 = None
     a2 = None
@@ -66,7 +67,7 @@ def cal_re(a0, a1, a2):
             result += max(0, realf / rfactor * (math.log(realf / expectf, 2) + lfactor))
     return result
 
-def cal_acf(fsas, klarge, ksmall, **karg):
+def cal_acf(fsas, klarge, **karg):
     """Calculate Average number of common features (ACF)
 
     Args:
@@ -95,6 +96,7 @@ def cal_acf(fsas, klarge, ksmall, **karg):
     BTW, this always returns 0.  **NEVER** use with :class:`MyPublicClass`.
 
     """
+    ksmall = 4
     n = len(fsas)
     if n >= 2:
         result = {}
@@ -126,8 +128,6 @@ def cal_ofc(fsas, kmer, **karg):
     """
     result = {}
 
-    #for kmer in tqdm(range(klarge,ksmall-1, -1)):
-    #    if kmer % 2 == 1:
     keys = []
     if kmer % 2 == 1:
         for fsa in fsas:
