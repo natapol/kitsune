@@ -96,5 +96,5 @@ Then use kitsune kopt command
 **Please be aware that this comand will use big computational resources when large number of genomes and/or large genome size are used as the input.
 
 ```bash
-kitsune kopt -i genome_list -ks 7 -kl 15 --canonical --fast -o output.txt
+kitsune kopt -i genome_list -kl 15 --canonical --fast -o output.txt
 ```
