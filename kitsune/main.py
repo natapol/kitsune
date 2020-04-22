@@ -21,6 +21,8 @@ from operator import itemgetter, attrgetter
 from itertools import combinations, chain, islice
 from collections import Counter
 import multiprocessing as mp
+import time
+
 # import internal library
 from . import kitsunejf as jf
 from tqdm import *
@@ -186,30 +188,27 @@ def generate_distance_matrix(args):
     else:
         print(outdata)
 
-##################################### New Additions ###################################################
-
-def filter(n,m): #### A filter to select kmers that meet a criteria ########################
+def filter(n,m): 
     c = Counter(n)
     cr = set(n)
     result = []
     for i in cr:
-        if c[i] >= (m * 0.5):
+        if c[i] >= int(m * 0.5):
             result.append(i)
     return result
 
-def kopt_cre(l,genomeList,args): ###################### Kmer optimal cre #######################
+def kopt_cre(l, kl, genomeList, args):
     from . import kopt
     genome = genomeList[l]
-    outdata = kopt.cal_cre(genome, **vars(args))
+    outdata = kopt.cal_cre(genome, kl, **vars(args))
     outdata = sorted(outdata.items(), key=itemgetter(0))
     return outdata
 
-def kopt_acf(p,args):           ##################### kmer optimal acf ########################
+def kopt_acf(p,args): 
     from . import kopt
     outdata_acf = kopt.cal_acf(p, **vars(args))
     outdata_acf = sorted(outdata_acf.items(), key=itemgetter(0))
     return outdata_acf
-
 
 def kopt_ofc(genomeList,kmer, args):
     from . import kopt
@@ -217,33 +216,8 @@ def kopt_ofc(genomeList,kmer, args):
     outdata_ofc = sorted(outdata_ofc.items(), key=itemgetter(0))
     return outdata_ofc
 
-def chunk(it, size):
-    it = iter(it)
-    return iter(lambda: tuple(islice(it, size)), ())
 
-def final_results(acf_res, outdata_cre, outdata_ofc): #################### some calculations for acf & cre #########
-    outdata_ac, outdata_cr, res, result, outdata_of = ([] for i in range(5))
-    outdata_of= '\n'.join(['\t'.join([str(x) for x in data]) for data in outdata_ofc])
-    ofc_max = max([x[1] for x in outdata_ofc])
-    kmax = [x for x,y in outdata_ofc if y==ofc_max]
-    ofc_possible_kmers = [x[0] for x in outdata_ofc if x[0] >= kmax[0]]
-    outdata_ac= '\n'.join(['\t'.join([str(x) for x in data]) for data in acf_res])
-    k_acf = [x[0] for x in acf_res]
-    acf = [x[1] for x in acf_res]
-    acf_max = max(acf)
-    maxacf = 0.10*float(acf_max)
-    acf_kmax = [x[0] for x in acf_res if x[1] <= maxacf and x[1] >= 1.0]
-    outdata_cr= '\n'.join(['\t'.join([str(x) for x in data]) for data in outdata_cre])
-    cre = [x[1] for x in outdata_cre]
-    if len(cre) != 0:
-        maxval = 0.1*float(max(cre))
-        result = [x[0] for x in outdata_cre if x[1] <= maxval and x[1] >= 1e-4]
-    else:
-        pass
-    return acf_kmax, result, outdata_cr, outdata_ac, outdata_of, ofc_possible_kmers;
-
-
-def kmer_optimal(args):               ################## kmer_optimal #################################
+def kmer_optimal(args): 
     from . import kopt
     """ Find the recommended optimal kmer using acf,cre and ofc for a given set of genomes
 
@@ -255,12 +229,11 @@ def kmer_optimal(args):               ################## kmer_optimal ##########
     """
     desc = "Find the recommended choice of kmer[s] for a given set of genomes within a given interval"
     parser = argparse.ArgumentParser(description=desc)
-    parser.add_argument("filenames", nargs="*",type=str, help="genome files in fasta format") #nargs"*" is added 
+    parser.add_argument("filenames", nargs="*",type=str, help="genome files in fasta format")  
     parser.add_argument("--fast", action="store_true", help="Jellyfish one-pass calculation (faster)")
     parser.add_argument("--canonical", action="store_true", help="Jellyfish count only canonical mer (use for raw read count)")
-    parser.add_argument("-ks", "--ksmall", default=5, type=int, help="smallest k-mer length to consider")
-    parser.add_argument("-kl", "--klarge", required=True, type=int, help="largest k-mer length to consider")
-    parser.add_argument("-i", "--input", type=str, help="path to list of genome files in a text format") # input introduced
+    parser.add_argument("-kl", "--klarge", required=True, type=int, help="largest k-mer length to consider, note: the smallest kmer length is 4")
+    parser.add_argument("-i", "--input", type=str, help="path to list of genome files")
     parser.add_argument("-o", "--output", type=str, help="output filename")
     args = parser.parse_args(args)
 
@@ -269,53 +242,77 @@ def kmer_optimal(args):               ################## kmer_optimal ##########
         combs = combinations(genomeList,2)
         genLen = len(genomeList)
         combLen = float(len(list(combinations(genomeList,2))))
-    
-        ######################## multiprocessing for cre ####################################
         outdata_cre = []
         acf_res = []
         pool = mp.Pool()
-        ##############changes        
+        
+        for p in combs:
+            acf_res.append(pool.apply_async(kopt_acf, args=(p,args)))
+        acf_res = list(chain(*[result.get() for result in acf_res]))
+        k_acf = [x[0] for x in acf_res]
+        acf = [x[1] for x in acf_res]
+        maxacf = 0.10*float(max(acf))
+        acf_kmax = [x[0] for x in acf_res if x[1] < maxacf]
+        acf_kmax2 = filter(acf_kmax, combLen * 0 )
 
-        acf_res = [pool.apply_async(kopt_acf, args=(p,args)) for p in combs]
-        outdata_cre = [pool.apply_async(kopt_cre, args=(l,genomeList,args)) for l in range(genLen)]
-           
-        ######i################# observed feature occurrence #################################
+        if len(acf_kmax2) == 0:
+            kl = args.klarge
+        else:
+            kl =max(acf_kmax2)
 
-        for kmer in range(args.ksmall, args.klarge+1):
-            outdata_ofc.append(pool.apply_async(kopt_ofc, args=(genomeList, kmer,args)))
         pool.close()
         pool.join()
-    outdata_ofc = list(chain(*[result.get() for result in outdata_ofc]))
-    outdata_cre = list(chain(*[result.get() for result in outdata_cre]))
-    acf_res = list(chain(*[result.get() for result in acf_res]))
-    outdata_of, outdata_cr, outdata_ac = ([] for i in range(3)) 
-    outdata_of= '\n'.join(['\t'.join([str(x) for x in data]) for data in outdata_ofc])
-    outdata_ac= '\n'.join(['\t'.join([str(x) for x in data]) for data in acf_res])
-    outdata_cr= '\n'.join(['\t'.join([str(x) for x in data]) for data in outdata_cre])
-    final = final_results(acf_res, outdata_cre, outdata_ofc)
-    result2 = filter(final[1], genLen)
-    acf_kmax2 = filter(final[0], combLen)
-    opt = list(set(result2) & set(acf_kmax2) & set(final[5]))
-     
+        time.sleep(10)
+
+        pool1 = mp.Pool()
+        for l in range(genLen):
+            outdata_cre.append(pool1.apply_async(kopt_cre, args=(l, kl, genomeList,args)))
+        outdata_cre = list(chain(*[result.get() for result in outdata_cre]))
+        cre = [x[1] for x in outdata_cre]
+        if len(cre) != 0:
+            maxval = 0.1*float(max(cre))
+        else:
+            maxval = 0
+        result = [x[0] for x in outdata_cre if x[1] < maxval]
+        result2 = filter(result, genLen)
+
+        pool1.close()
+        pool1.join()
+        time.sleep(10)
+        
+        pool2 = mp.Pool()
+        outdata_ofc = []
+        if len(result2) != 0:
+            ks = min(result2)
+        else:
+            ks = 4
+        for kmer in range(ks, kl+1):
+            outdata_ofc.append(pool2.apply_async(kopt_ofc, args=(genomeList, kmer,args)))
+        outdata_ofc = list(chain(*[result.get() for result in outdata_ofc]))
+        ofc = [x[1] for x in outdata_ofc]
+        if len(ofc) != 0:
+            ofc_max = max(ofc)
+        else:
+            ofc_max = 1e7
+        
+        kmax = [x for x,y in outdata_ofc if y==ofc_max]
+        ofc_possible_kmers = [x[0] for x in outdata_ofc if x[0] >= kmax[0]]
+
+        pool2.close()
+        pool2.join()
+      
+    opt = list(set(result2) & set(acf_kmax2) & set(ofc_possible_kmers))
+
     if args.output is not None and len(opt)>0:
         with open(args.output, 'w') as ofhandle:
-            print("The recommended choice of kmer: ", min(opt), file=ofhandle)
-            print("OFC possible kmers= :",final[5], file=ofhandle)
-            print("CRE possible kmers= :",list(set(result2)), file=ofhandle)
-            print("ACF possible kmers= :",list(set(acf_kmax2)), file = ofhandle)
+            print("The recommended choice of kmer is: ", min(opt), file=ofhandle)
     elif args.output is not None and len(opt)==0:
         with open(args.output, 'w') as ofhandle:
-            print("The recommended choice of kmer does not lie within the given interval", file=ofhandle)
-            print("OFC possible kmers :",final[5], file=ofhandle)
-            print("CRE possible kmers= :",list(set(result2)), file=ofhandle)
-            print("ACF possible kmers= :",list(set(acf_kmax2)), file = ofhandle)
+            print("The recommended choice of kmer does not lie within the given interval from 4 to the largest kmer length you selected", file=ofhandle)
     elif len(opt) == 0:
-        print("The recommended choice of kmer does not lie within the given interval")
-        print("OFC possible kmers :",final[5])
-        print("CRE possible kmers= :",list(set(result2)))
-        print("ACF possible kmers= :",list(set(acf_kmax2)))
+        print("The recommended choice of kmer does not lie within the given interval from 4 to the largest kmer length you selected")
     else:
-        print("The recommended choice of kmer: ",min(opt))
+        print("The recommended choice of kmer is: ",min(opt))
    
 
 if __name__ == "__main__":
