@@ -31,7 +31,7 @@ def cal_matrix(fsas, k_mer, dist_func, **karg):
     for pri_idx, pri_counter in tqdm(enumerate(counters), desc="distant calculation"):
         for sec_idx in range(pri_idx + 1, n):
             sec_counter = counters[sec_idx]
-            dist = pri_counter.dist(sec_counter, dist_func)
+            dist = pri_counter.dist(sec_counter, dist_func, transform=karg['transformed'])
             result[pri_counter.name][sec_idx] = dist
             result[sec_counter.name][pri_idx] = dist
     return result

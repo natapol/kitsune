@@ -38,16 +38,40 @@ elif platform.system() == 'Linux':
 else:
     raise Exception("Windows are not supported.")
 
+very_small_number = 1e-100
+
+def evo_transform(dist, kmer):
+    """
+    follow 1. Fan H, Ives AR, Surget-Groba Y, Cannon CH. 
+    An assembly and alignment-free method of phylogeny reconstruction from 
+    next-generation sequencing data. BMC Genomics [Internet]. 
+    2015 Jul 14 [cited 2020 Apr 17];16(1):522.
+    D = (-1/k) * log(distance)
+    """
+    j = very_small_number if dist <= 0 else dist
+    return (-1/kmer) *  math.log(j)
+
+
+# def phylogenetic_distance(u, v, kmer):
+#     """
+#     follow 1. Fan H, Ives AR, Surget-Groba Y, Cannon CH. 
+#     An assembly and alignment-free method of phylogeny reconstruction from 
+#     next-generation sequencing data. BMC Genomics [Internet]. 
+#     2015 Jul 14 [cited 2020 Apr 17];16(1):522.
+#     D=-1/k log ns/nt
+#     """
+#     return (-1/kmer) *  math.log(np.logical_and(u, v)/np.logical_or(u, v))
+
 def mash(u, v, kmer):
     """Do X and return a list."""
     j = 1 - distance.jaccard(u, v)
-    j = 1e-100 if j <= 0 else j
+    j = very_small_number if j <= 0 else j
     return (-1/kmer) * math.log(2*j/(1+j))
 
 def jsmash(u, v, kmer):
     """Do X and return a list."""
     j = 1 - distance.jensenshannon(u, v)
-    j = 1e-100 if j <= 0 else j
+    j = very_small_number if j <= 0 else j
     return (-1/kmer) * math.log(2*j/(1+j))
 
 
@@ -235,19 +259,26 @@ class Kmercount(collections.Counter):
     def __repr__(self):
         return self.name
 
-    def dist(self, other, dist_func):
+    def dist(self, other, dist_func, transform=False):
         """Do X and return a list."""
         a, b = self.norm(other)
         if dist_func is mash:
-            return dist_func(a.astype(bool), b.astype(bool), self.kmer)
+            dist = dist_func(a.astype(bool), b.astype(bool), self.kmer)
         elif dist_func is jsmash:
-            return dist_func(a.astype(float)/a.sum(), b.astype(float)/b.sum(), self.kmer)
+            dist = dist_func(a.astype(float)/a.sum(), b.astype(float)/b.sum(), self.kmer)
         elif dist_func in BOOLEAN_DISTANCE:
-            return dist_func(a.astype(bool), b.astype(bool))
+            print(a.astype(bool), b.astype(bool))
+            dist = dist_func(a.astype(bool), b.astype(bool))
         elif dist_func in PROB_DISTANCE:
-            return dist_func(a.astype(float)/a.sum(), b.astype(float)/b.sum())
+            dist = dist_func(a.astype(float)/a.sum(), b.astype(float)/b.sum())
         else:
-            return dist_func(a, b)
+            dist = dist_func(a, b)
+
+        dist = very_small_number if math.isnan(dist) else dist
+        if transform and dist_func not in [mash, jsmash] + NUMERIC_DISTANCE:
+            dist = evo_transform(dist, self.kmer)
+        
+        return dist
 
     def norm(self, other):
         """Do X and return a list."""
@@ -270,15 +301,28 @@ if __name__ == "__main__":
     #     1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0,
     #     1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1]
     # print(jaccarddistp(np.array(x).astype(bool), np.array(y).astype(bool)))
-    # print(prob_kmer_in_genome(16, 3e9))
-    # for i in range(5, 15):
+    # for i in range(5, 6):
     #     genomea = Kmercount('../examples/S288C_reference_sequence_R64-2-1_20150113.fsa', i)
-    #     genomeb = Kmercount('../examples/ASM170810v1_genomic.fna', i)
+    #     genomeb = Kmercount('../examples/GCA_001708105.1_ASM170810v1_genomic.fna', i)
     #     print(genomea.dist(genomeb, mash))
+    #     print(genomea.dist(genomeb, mash, transform=True))
     #     print(i, genomea.dist(genomeb, jaccarddistp))
-    # for distfunc in NUMERIC_DISTANCE:
-    #     print(genomea.dist(genomeb, distfunc))
-    # for distfunc in BOOLEAN_DISTANCE:
-    #     print(genomea.dist(genomeb, distfunc))
-    # for distfunc in PROB_DISTANCE:
-    #     print(genomea.dist(genomeb, distfunc))
+    #     print(i, genomea.dist(genomeb, jaccarddistp, transform=True))
+
+    #     print('NUM')
+    #     for distfunc in NUMERIC_DISTANCE:
+    #         print(distfunc)
+    #         print(genomea.dist(genomeb, distfunc))
+    #         print(genomea.dist(genomeb, distfunc, transform=True))
+            
+    #     print('BOOL')
+    #     for distfunc in BOOLEAN_DISTANCE:
+    #         print(distfunc)
+    #         print(genomea.dist(genomeb, distfunc))
+    #         print(genomea.dist(genomeb, distfunc, transform=True))
+
+    #     print('PROB')
+    #     for distfunc in PROB_DISTANCE:
+    #         print(distfunc)
+    #         print(genomea.dist(genomeb, distfunc))
+    #         print(genomea.dist(genomeb, distfunc, transform=True))

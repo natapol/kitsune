@@ -74,6 +74,7 @@ def cumulative_relative_entropy(args):
     parser.add_argument("--canonical", action="store_true", help="Jellyfish count only canonical mer (use for raw read count)")
     parser.add_argument("-ke", "--kend", required=True, type=int, help="last k-mer")
     parser.add_argument("-kf", "--kfrom", default=4, type=int, help="Calculate from k-mer")
+    parser.add_argument("-t", "--thread", type=int, default=1)
     parser.add_argument("-o", "--output", type=str, help="output filename")
     args = parser.parse_args(args)
 
@@ -103,7 +104,8 @@ def average_common_feature(args):
     parser.add_argument("filenames", nargs="+", type=str, help="genome files in fasta format")
     parser.add_argument("--fast", action="store_true", help="Jellyfish one-pass calculation (faster)")
     parser.add_argument("--canonical", action="store_true", help="Jellyfish count only canonical mer (use for raw read count)")
-    parser.add_argument("-k", "--kmers", nargs="+", required=True, type=int)
+    parser.add_argument("-k", "--kmers", nargs="+", required=True, type=int, help="have to state before")
+    parser.add_argument("-t", "--thread", type=int, default=1)
     parser.add_argument("-o", "--output", type=str, help="output filename")
     args = parser.parse_args(args)
 
@@ -133,6 +135,7 @@ def observe_feature_occurrence(args):
     parser.add_argument("--fast", action="store_true", help="Jellyfish one-pass calculation (faster)")
     parser.add_argument("--canonical", action="store_true", help="Jellyfish count only canonical mer (use for raw read count)")
     parser.add_argument("-k", "--kmers", nargs="+", required=True, type=int)
+    parser.add_argument("-t", "--thread", type=int, default=1)
     parser.add_argument("-o", "--output", type=str, help="output filename")
     args = parser.parse_args(args)
 
@@ -166,6 +169,7 @@ def generate_distance_matrix(args):
     parser.add_argument("-i", "--input", type=str, help="list of genome files in txt")
     parser.add_argument("-o", "--output", type=str, help="output filename")
     parser.add_argument("-t", "--thread", type=int, default=1)
+    parser.add_argument("--transformed", action="store_true")
     parser.add_argument("-d", "--distance", default="cosine", help="braycurtis, canberra, jsmash, chebyshev, cityblock, correlation, cosine (default), dice, euclidean, hamming, jaccard, kulsinsk, matching, rogerstanimoto, russellrao, sokalmichener, sokalsneath, sqeuclidean, yule, mash, jaccarddistp")
     parser.add_argument("-f", "--format", default="phylip")
     args = parser.parse_args(args)
