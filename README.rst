@@ -56,9 +56,9 @@ CRE, ACF, and OCF.
 
 .. code:: bash
 
-   kitsune cre genome_fasta/* -ks 5 -ke 10
-   kitsune acf genome_fasta/* -ks 5 -ke 10
-   kitsune ocf genome_fasta/* -ks 5 -ke 10
+   kitsune cre genome_fasta/* -kf 5 -ke 10
+   kitsune acf genome_fasta/* -k 5 
+   kitsune ocf genome_fasta/* -k 5
 
 Calculate genomic distance at specific k-mer from kmer frequency vectors of two of genomes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -122,4 +122,4 @@ input.
 
 .. code:: bash
 
-   kitsune kopt -i genome_list -ks 7 -kl 15 --canonical --fast -o output.txt
+   kitsune kopt -i genome_list -kl 15 --canonical --fast -o output.txt
