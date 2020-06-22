@@ -37,9 +37,9 @@ pip install kitsune
 Kitsune provides three commands to calculate an appropiate k-mer using CRE, ACF, and OCF:
 
 ```bash
-kitsune cre genome_fasta/* -ks 5 -ke 10
-kitsune acf genome_fasta/* -ks 5 -ke 10
-kitsune ocf genome_fasta/* -ks 5 -ke 10
+kitsune cre genome_fasta/* -kf 5 -ke 10
+kitsune acf genome_fasta/* -k 5
+kitsune ofc genome_fasta/* -k 5 
 ```
 
 ### Calculate genomic distance at specific k-mer from kmer frequency vectors of two of genomes
