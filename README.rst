@@ -1,10 +1,7 @@
 KITSUNE: K-mer-length Iterative Selection for UNbiased Ecophylogenomics
 =======================================================================
 
-.. figure:: https://github.com/natapol/kitsune/blob/master/logoKITSUNE.png?v&s=200
-   :alt: KISUNE
-
-   KISUNE
+|PyPI version| |Upload Python Package|
 
 KITSUNE is a toolkit for evaluation of the lenght of k-mer in a given
 genome dataset for alignment-free phylogenimic analysis.
@@ -18,9 +15,9 @@ steps aproach described in `Viral Phylogenomics Using an Alignment-Free
 Method: A Three-Step Approach to Determine Optimal Length of
 k-mer <https://www.nature.com/articles/srep40712>`__.
 
-KITSUNE uses Jellyfish software
-`Jellyfish <https://academic.oup.com/bioinformatics/article/27/6/764/234905>`__
-for k-mer counting. Thanks to Jellyfish developer.
+KITSUNE uses Jellyfish software for k-mer counting. Thanks to Jellyfish
+developer.
+`Citation <https://academic.oup.com/bioinformatics/article/27/6/764/234905>`__
 
 KITSUNE will calculte the three matrices across considered k-emer range
 :
@@ -39,7 +36,7 @@ If you use KITSUNE in your research, please cite:
 Installation
 ------------
 
-Clone the repository and install it throught pip
+Install throught pip:
 
 .. code:: bash
 
@@ -52,13 +49,13 @@ Calculate CRE, ACF, and OFC value for specific kmer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Kitsune provides three commands to calculate an appropiate k-mer using
-CRE, ACF, and OCF.
+CRE, ACF, and OCF:
 
 .. code:: bash
 
    kitsune cre genome_fasta/* -kf 5 -ke 10
-   kitsune acf genome_fasta/* -k 5 
-   kitsune ocf genome_fasta/* -k 5
+   kitsune acf genome_fasta/* -k 5
+   kitsune ofc genome_fasta/* -k 5 
 
 Calculate genomic distance at specific k-mer from kmer frequency vectors of two of genomes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -66,31 +63,53 @@ Calculate genomic distance at specific k-mer from kmer frequency vectors of two 
 Kitsune provides a commands to calculate genomic distance using
 different distance estimation method.
 
-=============== =========================================
-distance option name
-=============== =========================================
-braycurtis      Bray-Curtis distance
-canberra        Canberra distance
-chebyshev       Chebyshev distance
-cityblock       City Block (Manhattan) distance
-correlation     Correlation distance
-cosine          Cosine distance
-euclidean       Euclidean distance
-jensenshannon   Jensen-Shannon distance
-sqeuclidean     Squared Euclidean distance
-dice            Dice dissimilarity
-hamming         Hamming distance
-jaccard         Jaccard-Needham dissimilarity
-kulsinski       Kulsinski dissimilarity
-rogerstanimoto  Rogers-Tanimoto dissimilarity
-russellrao      Russell-Rao dissimilarity
-sokalmichener   Sokal-Michener dissimilarity
-sokalsneath     Sokal-Sneath dissimilarity
-yule            Yule dissimilarity
-mash            MASH distance
-jsmash          MASH Jensen-Shannon distance
-jaccarddistp    Jaccard-Needham dissimilarity Probability
-=============== =========================================
++-----------------+-------------------------------------------+
+| distance option | name                                      |
++=================+===========================================+
+| braycurtis      | Bray-Curtis distance                      |
++-----------------+-------------------------------------------+
+| canberra        | Canberra distance                         |
++-----------------+-------------------------------------------+
+| chebyshev       | Chebyshev distance                        |
++-----------------+-------------------------------------------+
+| cityblock       | City Block (Manhattan) distance           |
++-----------------+-------------------------------------------+
+| correlation     | Correlation distance                      |
++-----------------+-------------------------------------------+
+| cosine          | Cosine distance                           |
++-----------------+-------------------------------------------+
+| euclidean       | Euclidean distance                        |
++-----------------+-------------------------------------------+
+| jensenshannon   | Jensen-Shannon distance                   |
++-----------------+-------------------------------------------+
+| sqeuclidean     | Squared Euclidean distance                |
++-----------------+-------------------------------------------+
+| dice            | Dice dissimilarity                        |
++-----------------+-------------------------------------------+
+| hamming         | Hamming distance                          |
++-----------------+-------------------------------------------+
+| jaccard         | Jaccard-Needham dissimilarity             |
++-----------------+-------------------------------------------+
+| kulsinski       | Kulsinski dissimilarity                   |
++-----------------+-------------------------------------------+
+| rogerstanimoto  | Rogers-Tanimoto dissimilarity             |
++-----------------+-------------------------------------------+
+| russellrao      | Russell-Rao dissimilarity                 |
++-----------------+-------------------------------------------+
+| sokalmichener   | Sokal-Michener dissimilarity              |
++-----------------+-------------------------------------------+
+| sokalsneath     | Sokal-Sneath dissimilarity                |
++-----------------+-------------------------------------------+
+| yule            | Yule dissimilarity                        |
++-----------------+-------------------------------------------+
+| mash            | MASH distance                             |
++-----------------+-------------------------------------------+
+| jsmash          | MASH Jensen-Shannon distance              |
++-----------------+-------------------------------------------+
+| jaccarddistp    | Jaccard-Needham dissimilarity Probability |
++-----------------+-------------------------------------------+
+
+Example of choosing distance option:
 
 .. code:: bash
 
@@ -110,8 +129,6 @@ Then use kitsune kopt command
 
 -i : path to list of genome files
 
--ks: The smallest kmer-length to consider
-
 -kl: The largest kmer-length to consider
 
 -o: output file
@@ -123,3 +140,7 @@ input.
 .. code:: bash
 
    kitsune kopt -i genome_list -kl 15 --canonical --fast -o output.txt
+
+.. |PyPI version| image:: https://badge.fury.io/py/kitsune.svg
+   :target: https://badge.fury.io/py/kitsune
+.. |Upload Python Package| image:: https://github.com/natapol/kitsune/workflows/Upload%20Python%20Package/badge.svg
