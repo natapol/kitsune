@@ -38,6 +38,11 @@ elif platform.system() == 'Linux':
 else:
     raise Exception("Windows are not supported.")
 
+class JellyFishError(Exception):
+    def __init__(self, error_message):
+        self.message = f"JellyFish dumping error: {error_message}"
+
+
 very_small_number = 1e-100
 
 def evo_transform(dist, kmer):
@@ -213,7 +218,7 @@ class Kmercount(collections.Counter):
             if 'fast' in karg and karg['fast']:
                 # for genome with one step
                 dumpdata = subprocess.getoutput("""
-                    {0} count {8} -m {1} -s {3} -t {4} {6} -o {5}.jf
+                    {0} count {8} -m {1} -s {3} -t {4} -o {5}.jf {6}
                     {0} dump -c -L {7} {5}.jf
                     """.format(
                         jellyfishpath,
@@ -230,7 +235,7 @@ class Kmercount(collections.Counter):
             else:
                 dumpdata = subprocess.getoutput("""
                     {0} bc {8} -m {1} -s {2} -t {4} -o {5}.bc {6}
-                    {0} count {8} -m {1} -s {3} -t {4} --bc {5}.bc {6} -o {5}.jf
+                    {0} count {8} -m {1} -s {3} -t {4} --bc {5}.bc -o {5}.jf {6}
                     {0} dump -c -L {7} {5}.jf
                     """.format(
                         jellyfishpath,
@@ -246,10 +251,15 @@ class Kmercount(collections.Counter):
                 )
 
         datadict = {}
-        for line in dumpdata.split('\n'):
-            dat = line.rstrip().split(' ')
-            datadict[dat[0]] = int(dat[1])
-
+        if not dumpdata.startswith("Bloom filter file is truncated"):
+            try:
+                for line in dumpdata.split('\n'):
+                    dat = line.rstrip().split(' ')
+                    datadict[dat[0]] = int(dat[1])
+            except ValueError:
+                raise JellyFishError("Bloom filter file is truncated.")
+        else:
+            raise JellyFishError("Bloom filter file is truncated.")
         super(Kmercount, self).__init__(datadict)
 
         # assign instance variable
@@ -294,35 +304,3 @@ class Kmercount(collections.Counter):
 
 if __name__ == "__main__":
     pass
-    # x = [0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1,
-    #     1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0,
-    #     0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1]
-    # y = [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1,
-    #     1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0,
-    #     1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1]
-    # print(jaccarddistp(np.array(x).astype(bool), np.array(y).astype(bool)))
-    # for i in range(5, 6):
-    #     genomea = Kmercount('../examples/S288C_reference_sequence_R64-2-1_20150113.fsa', i)
-    #     genomeb = Kmercount('../examples/GCA_001708105.1_ASM170810v1_genomic.fna', i)
-    #     print(genomea.dist(genomeb, mash))
-    #     print(genomea.dist(genomeb, mash, transform=True))
-    #     print(i, genomea.dist(genomeb, jaccarddistp))
-    #     print(i, genomea.dist(genomeb, jaccarddistp, transform=True))
-
-    #     print('NUM')
-    #     for distfunc in NUMERIC_DISTANCE:
-    #         print(distfunc)
-    #         print(genomea.dist(genomeb, distfunc))
-    #         print(genomea.dist(genomeb, distfunc, transform=True))
-            
-    #     print('BOOL')
-    #     for distfunc in BOOLEAN_DISTANCE:
-    #         print(distfunc)
-    #         print(genomea.dist(genomeb, distfunc))
-    #         print(genomea.dist(genomeb, distfunc, transform=True))
-
-    #     print('PROB')
-    #     for distfunc in PROB_DISTANCE:
-    #         print(distfunc)
-    #         print(genomea.dist(genomeb, distfunc))
-    #         print(genomea.dist(genomeb, distfunc, transform=True))
