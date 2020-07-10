@@ -42,7 +42,7 @@ Commands can be:
 cre <filename>                    Compute cumulative relative entropy.
 acf <filenames>                   Compute average number of common feature between signatures.
 ofc <filenames>                   Compute observed feature frequencies.
-kopt <filenames>                  Compute optimal kmer and generate histograms .
+kopt <filenames>                  Compute recommended choice (optimal) of kmer within a given kmer interval for a set of genomes using the cre, acf and ofc.
 dmatrix <filenames>               Compute distance matrix.
 ```
 ### Calculate CRE, ACF, and OFC value for specific kmer
@@ -63,8 +63,7 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   --fast                Jellyfish one-pass calculation (faster)
-  --canonical           Jellyfish count only canonical mer (use for raw read
-                        count)
+  --canonical           Jellyfish count only canonical mer
   -ke KEND, --kend KEND
                         last k-mer
   -kf KFROM, --kfrom KFROM
@@ -89,8 +88,7 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   --fast                Jellyfish one-pass calculation (faster)
-  --canonical           Jellyfish count only canonical mer (use for raw read
-                        count)
+  --canonical           Jellyfish count only canonical mer
   -k KMERS [KMERS ...], --kmers KMERS [KMERS ...]
                         have to state before
   -t THREAD, --thread THREAD
@@ -113,8 +111,7 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   --fast                Jellyfish one-pass calculation (faster)
-  --canonical           Jellyfish count only canonical mer (use for raw read
-                        count)
+  --canonical           Jellyfish count only canonical mer
   -k KMERS [KMERS ...], --kmers KMERS [KMERS ...]
   -t THREAD, --thread THREAD
   -o OUTPUT, --output OUTPUT
@@ -192,22 +189,38 @@ kitsune dmatrix genome1.fna genome2.fna -k 17 -d hensenshannon --canonical --fas
 
 ### Find optimum k-mer from a given set of genome 
 
-Kitsune provides a comand to find optimum k-mer length in agiven set of genome. 
+Kitsune provides a comand to find optimum k-mer length for a given set of genome within a given kmer interval. 
+```bash
+usage: kitsune [-h] [--fast] [--canonical] -kl KLARGE [-o OUTPUT] [--closely_related] [-x CRE_CUTOFF] [-y ACF_CUTOFF] [-t THREAD] filenames
+
+Example: kitsune kopt genomeList.txt -kl 15 --canonical --fast -t 4 -o out.txt
+
+positional arguments:
+  filenames             A file that list the path to all genomes(fasta format) with extension as (.txt,.csv,.tab) or no extension
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --fast                Jellyfish one-pass calculation (faster)
+  --canonical           Jellyfish count only canonical mer
+  -kl KLARGE, --klarge KLARGE
+                        largest k-mer length to consider, note: the smallest kmer length is 4
+  -o OUTPUT, --output OUTPUT
+                        output filename
+  --closely_related     For closely related set of genomes, use this option
+  -x CRE_CUTOFF, --cre_cutoff CRE_CUTOFF
+                        cutoff to use in selecting kmers whose cre's are <= (cutoff * max(cre)), Default = 10 percent, ie x=0.1
+  -y ACF_CUTOFF, --acf_cutoff ACF_CUTOFF
+                        cutoff to use in selecting kmers whose acf's are >= (cutoff * max(acf)), Default = 10 percent, ie y=0.1
+  -t THREAD, --thread THREAD
+                        Number of threads (integer)
+```
 
 First download the example files.[Download]("https://github.com/natapol/kitsune/blob/master/examaple_viral_genomes.zip")
 
-Then use kitsune kopt command
-
--i : path to list of genome files
-
--kl: The largest kmer-length to consider
-
--o: output file
+Then use kitsune kopt command below
 
 **Please be aware that this comand will use big computational resources when large number of genomes and/or large genome size are used as the input.
-```bash
-
 
 ```bash
-kitsune kopt -i genome_list -kl 15 --canonical --fast -o output.txt
+kitsune kopt genome_list -kl 15 --canonical --fast -t 2 -o output.txt
 ```
