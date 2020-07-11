@@ -28,11 +28,11 @@ Kitsune is developed under python version 3 environment. We recomend users use p
 Requirement packages 
 biopython >= 1.77, scipy >= 0.18.1, numpy >= 1.1.0, tqdm >= 4.45.0 
 
-# pip
+### pip
 ```bash
 pip install kitsune
 ```
-# Clone from github
+### Clone from github
 ```bash
 git clone https://github.com/natapol/kitsune
 cd kitsune/
