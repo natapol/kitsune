@@ -5,9 +5,9 @@
 [![PyPI version](https://badge.fury.io/py/kitsune.svg)](https://badge.fury.io/py/kitsune)
 ![Upload Python Package](https://github.com/natapol/kitsune/workflows/Upload%20Python%20Package/badge.svg)
 
-KITSUNE is a toolkit for evaluation of the lenght of k-mer in a given genome dataset for alignment-free phylogenimic analysis.
+KITSUNE is a toolkit for evaluation of the length of k-mer in a given genome dataset for alignment-free phylogenimic analysis.
 
-K-mer based approach is simple and fast yet has been widely used in many applications including biological sequence comparison. However, selection of an appropriate k-mer length to obtain a good information content for comparison is normally overlooked. The optimum k-mer length is a prerequsite to obtain biological menaingful genomic distance for assesment of phylogenetic relationships. Therefore, we have developed KITSUNE to aid k-mer length selection process in a systematic way, based on a three-steps aproach described in [Viral Phylogenomics Using an Alignment-Free Method: A Three-Step Approach to Determine Optimal Length of k-mer](https://www.nature.com/articles/srep40712).
+K-mer based approach is simple and fast yet has been widely used in many applications including biological sequence comparison. However, selection of an appropriate k-mer length to obtain a good information content for comparison is normally overlooked. The optimum k-mer length is a prerequsite to obtain biological meaningful genomic distance for assesment of phylogenetic relationships. Therefore, we have developed KITSUNE to aid k-mer length selection process in a systematic way, based on a three-steps aproach described in [Viral Phylogenomics Using an Alignment-Free Method: A Three-Step Approach to Determine Optimal Length of k-mer](https://www.nature.com/articles/srep40712).
 
 KITSUNE uses Jellyfish software for k-mer counting. Thanks to Jellyfish developer. [Citation](https://academic.oup.com/bioinformatics/article/27/6/764/234905)
 
@@ -17,14 +17,14 @@ KITSUNE will calculte the three matrices across considered k-mer range:
 1. Averrage number of Common Feature (ACF)
 1. Obserbed Common Feature (OCF)
 
-Moreverver, KITSUNE also provides various genomic distance calculations from the k-mer frequnce vectors that can be used for species identifiction or phylogenomic tree construction.  
+Moreover, KITSUNE also provides various genomic distance calculations from the k-mer frequency vectors that can be used for species identification or phylogenomic tree construction.  
 
 If you use KITSUNE in your research, please cite: KITSUNE: A Tool for Identifying Optimal K-mer Length for Alignment-free Phylogenomic Analysis
 [Reference](https://github.com/natapol/kitsune)
 
 ## Installation
 
-Kitsune is developed under python version 3 environment. We recomend users use python >= v3.5.
+Kitsune is developed under python version 3 environment. We recommend users use python >= v3.5.
 
 Requirement packages:
 
@@ -130,8 +130,8 @@ optional arguments:
 
 ### Example
 ```bash
-kitsune cre genome_fasta/* -kf 5 -ke 10
-kitsune acf genome_fasta/* -k 5
+kitsune cre genome1.fna -kf 5 -ke 10
+kitsune acf genome1.fna genome2.fna -k 5
 kitsune ofc genome_fasta/* -k 5 
 ```
 
@@ -248,6 +248,6 @@ First download the example files.[Download]("https://github.com/natapol/kitsune/
  kitsune kopt genomeList.txt -kl 15 --canonical --fast -t 4 -o out.txt
 ```
 
-**Please be aware that this comand will use big computational resources when large number of genomes and/or large genome size are used as the input. 
+**Please be aware that this command will use big computational resources when large number of genomes and/or large genome size are used as the input. 
 
 
