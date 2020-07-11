@@ -24,14 +24,20 @@ If you use KITSUNE in your research, please cite: KITSUNE: A Tool for Identifyin
 
 ## Installation
 
-Kitsune is developed under python version 3 environment. We recomend python v3.8.......
+Kitsune is developed under python version 3 environment. We recomend users use python >= v3.5.
 Requirement packages 
 biopython >= 1.77, scipy >= 0.18.1, numpy >= 1.1.0, tqdm >= 4.45.0 
 
+# pip
 ```bash
 pip install kitsune
 ```
-
+# Clone from github
+```bash
+git clone https://github.com/natapol/kitsune
+cd kitsune/
+python nstall setup.py
+```
 ## Usage
 
 ## Overview of kitsune
