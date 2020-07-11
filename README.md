@@ -11,7 +11,7 @@ K-mer based approach is simple and fast yet has been widely used in many applica
 
 KITSUNE uses Jellyfish software for k-mer counting. Thanks to Jellyfish developer. [Citation](https://academic.oup.com/bioinformatics/article/27/6/764/234905)
 
-KITSUNE will calculte the three matrices across considered k-emer range :
+KITSUNE will calculte the three matrices across considered k-mer range:
 
 1. Cumulative Relative Entropy (CRE)
 1. Averrage number of Common Feature (ACF)
@@ -19,14 +19,14 @@ KITSUNE will calculte the three matrices across considered k-emer range :
 
 Moreverver, KITSUNE also provides various genomic distance calculations from the k-mer frequnce vectors that can be used for species identifiction or phylogenomic tree construction.  
 
-If you use KITSUNE in your research, please cite:
+If you use KITSUNE in your research, please cite: KITSUNE: A Tool for Identifying Optimal K-mer Length for Alignment-free Phylogenomic Analysis
 [Reference](https://github.com/natapol/kitsune)
 
 ## Installation
 
 Kitsune is developed under python version 3 environment. We recomend python v3.8.......
 Requirement packages 
-scipy>=0.18.1, numpy>=1.1.0, qdm>=4.32 
+biopython >= 1.77, scipy >= 0.18.1, numpy >= 1.1.0, tqdm >= 4.45.0 
 
 ```bash
 pip install kitsune
@@ -51,6 +51,7 @@ Kitsune provides three commands to calculate an appropiate k-mer using CRE, ACF,
 
 ### Calculate CRE
 ```bash
+kitsune cre -h
 usage: kitsune [-h] [--fast] [--canonical] -ke KEND [-kf KFROM] [-t THREAD]
                [-o OUTPUT]
                filename
@@ -76,6 +77,7 @@ optional arguments:
 
 ### Calculate ACF
 ```bash
+kitsune acf -h
 usage: kitsune [-h] [--fast] [--canonical] -k KMERS [KMERS ...] [-t THREAD]
                [-o OUTPUT]
                filenames [filenames ...]
@@ -94,11 +96,11 @@ optional arguments:
   -t THREAD, --thread THREAD
   -o OUTPUT, --output OUTPUT
                         output filename
-                        
 ```                    
 
 ### Calculate OFC
 ```bash
+kitsune ofc -h
 usage: kitsune [-h] [--fast] [--canonical] -k KMERS [KMERS ...] [-t THREAD]
                [-o OUTPUT]
                filenames [filenames ...]
@@ -116,7 +118,6 @@ optional arguments:
   -t THREAD, --thread THREAD
   -o OUTPUT, --output OUTPUT
                         output filename
-                        
 ```
 
 ### Example
@@ -128,7 +129,7 @@ kitsune ofc genome_fasta/* -k 5
 
 ### Calculate genomic distance at specific k-mer from kmer frequency vectors of two of genomes
 
-Kitsune provides a commands to calculate genomic distance using different distance estimation method.
+Kitsune provides a commands to calculate genomic distance using different distance estimation method. Users can assess the impact of a selected k-mer length on the genomic distnace of choice below.
 
 distance option  | name
 -------------    | ----
@@ -154,16 +155,25 @@ mash             | MASH distance
 jsmash           | MASH Jensen-Shannon distance
 jaccarddistp     | Jaccard-Needham dissimilarity Probability
 
+Kitsune provides a choice of distance transformation proposed by Fan et.al https://doi.org/10.1186/s12864-015-1647-5 .
+
 ### Calculate a distance matrix
+
 ```bash
+kitsune dmatrix -h
+usage: kitsune [-h] [--fast] [--canonical] -k KMER [-i INPUT] [-o OUTPUT]
+               [-t THREAD] [--transformed] [-d DISTANCE] [-f FORMAT]
+               [filenames [filenames ...]]
+
+Calculate a distance matrix
+
 positional arguments:
   filenames             genome files in fasta format
 
 optional arguments:
   -h, --help            show this help message and exit
   --fast                Jellyfish one-pass calculation (faster)
-  --canonical           Jellyfish count only canonical mer (use for raw read
-                        count)
+  --canonical           Jellyfish count only canonical mer
   -k KMER, --kmer KMER
   -i INPUT, --input INPUT
                         list of genome files in txt
@@ -183,44 +193,53 @@ optional arguments:
 Example of choosing distance option:
 
 ```bash
-kitsune dmatrix genome1.fna genome2.fna -k 17 -d jaccard --canonical --fast -o output.txt
-kitsune dmatrix genome1.fna genome2.fna -k 17 -d hensenshannon --canonical --fast -o output.txt
+kitsune dmatrix genome1.fna genome2.fna -k 11 -d jaccard --canonical --fast -o output.txt
+kitsune dmatrix genome1.fna genome2.fna -k 11 -d hensenshannon --canonical --fast -o output.txt
 ```
 
-### Find optimum k-mer from a given set of genome 
+### Find optimum k-mer from a given set of genomes 
 
-Kitsune provides a comand to find optimum k-mer length for a given set of genome within a given kmer interval. 
+Kitsune provides a wrap-up comand to find optimum k-mer length for a given set of genome within a given kmer interval. 
+
 ```bash
-usage: kitsune [-h] [--fast] [--canonical] -kl KLARGE [-o OUTPUT] [--closely_related] [-x CRE_CUTOFF] [-y ACF_CUTOFF] [-t THREAD] filenames
+kitsune kopt -h
+usage: kitsune [-h] [--fast] [--canonical] -kl KLARGE [-o OUTPUT]
+               [--closely_related] [-x CRE_CUTOFF] [-y ACF_CUTOFF] [-t THREAD]
+               filenames
 
 Example: kitsune kopt genomeList.txt -kl 15 --canonical --fast -t 4 -o out.txt
 
 positional arguments:
-  filenames             A file that list the path to all genomes(fasta format) with extension as (.txt,.csv,.tab) or no extension
+  filenames             A file that list the path to all genomes(fasta format)
+                        with extension as (.txt,.csv,.tab) or no extension
 
 optional arguments:
   -h, --help            show this help message and exit
   --fast                Jellyfish one-pass calculation (faster)
   --canonical           Jellyfish count only canonical mer
   -kl KLARGE, --klarge KLARGE
-                        largest k-mer length to consider, note: the smallest kmer length is 4
+                        largest k-mer length to consider, note: the smallest
+                        kmer length is 4
   -o OUTPUT, --output OUTPUT
                         output filename
   --closely_related     For closely related set of genomes, use this option
   -x CRE_CUTOFF, --cre_cutoff CRE_CUTOFF
-                        cutoff to use in selecting kmers whose cre's are <= (cutoff * max(cre)), Default = 10 percent, ie x=0.1
+                        cutoff to use in selecting kmers whose cre's are <=
+                        (cutoff * max(cre)), Default = 10 percent, ie x=0.1
   -y ACF_CUTOFF, --acf_cutoff ACF_CUTOFF
-                        cutoff to use in selecting kmers whose acf's are >= (cutoff * max(acf)), Default = 10 percent, ie y=0.1
+                        cutoff to use in selecting kmers whose acf's are >=
+                        (cutoff * max(acf)), Default = 10 percent, ie y=0.1
   -t THREAD, --thread THREAD
                         Number of threads (integer)
 ```
 
+### Example
 First download the example files.[Download]("https://github.com/natapol/kitsune/blob/master/examaple_viral_genomes.zip")
 
-Then use kitsune kopt command below
-
-**Please be aware that this comand will use big computational resources when large number of genomes and/or large genome size are used as the input.
-
 ```bash
-kitsune kopt genome_list -kl 15 --canonical --fast -t 2 -o output.txt
+ kitsune kopt genomeList.txt -kl 15 --canonical --fast -t 4 -o out.txt
 ```
+
+**Please be aware that this comand will use big computational resources when large number of genomes and/or large genome size are used as the input. 
+
+
