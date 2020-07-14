@@ -67,7 +67,11 @@ Usage
 Overview of kitsune
 ~~~~~~~~~~~~~~~~~~~
 
+command for listing help
+
 .. code:: bash
+
+   $ kitsune --help
 
    usage: kitsune <command> [<args>]
 
@@ -89,7 +93,7 @@ Calculate CRE
 
 .. code:: bash
 
-   kitsune cre -h
+   $ kitsune cre -h
    usage: kitsune [-h] [--fast] [--canonical] -ke KEND [-kf KFROM] [-t THREAD]
                   [-o OUTPUT]
                   filename
@@ -116,7 +120,7 @@ Calculate ACF
 
 .. code:: bash
 
-   kitsune acf -h
+   $ kitsune acf -h
    usage: kitsune [-h] [--fast] [--canonical] -k KMERS [KMERS ...] [-t THREAD]
                   [-o OUTPUT]
                   filenames [filenames ...]
@@ -141,7 +145,7 @@ Calculate OFC
 
 .. code:: bash
 
-   kitsune ofc -h
+   $ kitsune ofc -h
    usage: kitsune [-h] [--fast] [--canonical] -k KMERS [KMERS ...] [-t THREAD]
                   [-o OUTPUT]
                   filenames [filenames ...]
@@ -210,7 +214,7 @@ Calculate a distance matrix
 
 .. code:: bash
 
-   kitsune dmatrix -h
+   $ kitsune dmatrix -h
    usage: kitsune [-h] [--fast] [--canonical] -k KMER [-i INPUT] [-o OUTPUT]
                   [-t THREAD] [--transformed] [-d DISTANCE] [-f FORMAT]
                   [filenames [filenames ...]]
@@ -254,7 +258,7 @@ given set of genome within a given kmer interval.
 
 .. code:: bash
 
-   kitsune kopt -h
+   $ kitsune kopt -h
    usage: kitsune [-h] [--fast] [--canonical] -kl KLARGE [-o OUTPUT]
                   [--closely_related] [-x CRE_CUTOFF] [-y ACF_CUTOFF] [-t THREAD]
                   filenames
@@ -292,7 +296,7 @@ First download the example files.
 
 .. code:: bash
 
-    kitsune kopt genomeList.txt -kl 15 --canonical --fast -t 4 -o out.txt
+   kitsune kopt genomeList.txt -kl 15 --canonical --fast -t 4 -o out.txt
 
 \**Please be aware that this command will use big computational
 resources when large number of genomes and/or large genome size are used

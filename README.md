@@ -48,7 +48,11 @@ python nstall setup.py
 
 ### Overview of kitsune
 
+command for listing help
+
 ```bash
+$ kitsune --help
+
 usage: kitsune <command> [<args>]
 
 Commands can be:
@@ -66,7 +70,7 @@ Kitsune provides three commands to calculate an appropiate k-mer using CRE, ACF,
 ### Calculate CRE
 
 ```bash
-kitsune cre -h
+$ kitsune cre -h
 usage: kitsune [-h] [--fast] [--canonical] -ke KEND [-kf KFROM] [-t THREAD]
                [-o OUTPUT]
                filename
@@ -92,7 +96,7 @@ optional arguments:
 ### Calculate ACF
 
 ```bash
-kitsune acf -h
+$ kitsune acf -h
 usage: kitsune [-h] [--fast] [--canonical] -k KMERS [KMERS ...] [-t THREAD]
                [-o OUTPUT]
                filenames [filenames ...]
@@ -116,7 +120,7 @@ optional arguments:
 ### Calculate OFC
 
 ```bash
-kitsune ofc -h
+$ kitsune ofc -h
 usage: kitsune [-h] [--fast] [--canonical] -k KMERS [KMERS ...] [-t THREAD]
                [-o OUTPUT]
                filenames [filenames ...]
@@ -177,7 +181,7 @@ Kitsune provides a choice of distance transformation proposed by [Fan et.al](htt
 ### Calculate a distance matrix
 
 ```bash
-kitsune dmatrix -h
+$ kitsune dmatrix -h
 usage: kitsune [-h] [--fast] [--canonical] -k KMER [-i INPUT] [-o OUTPUT]
                [-t THREAD] [--transformed] [-d DISTANCE] [-f FORMAT]
                [filenames [filenames ...]]
@@ -219,7 +223,7 @@ kitsune dmatrix genome1.fna genome2.fna -k 11 -d hensenshannon --canonical --fas
 Kitsune provides a wrap-up comand to find optimum k-mer length for a given set of genome within a given kmer interval.
 
 ```bash
-kitsune kopt -h
+$ kitsune kopt -h
 usage: kitsune [-h] [--fast] [--canonical] -kl KLARGE [-o OUTPUT]
                [--closely_related] [-x CRE_CUTOFF] [-y ACF_CUTOFF] [-t THREAD]
                filenames
@@ -255,7 +259,7 @@ optional arguments:
 First download the example files. [Download](https://github.com/natapol/kitsune/blob/master/examaple_viral_genomes.zip)
 
 ```bash
- kitsune kopt genomeList.txt -kl 15 --canonical --fast -t 4 -o out.txt
+kitsune kopt genomeList.txt -kl 15 --canonical --fast -t 4 -o out.txt
 ```
 
 **Please be aware that this command will use big computational resources when large number of genomes and/or large genome size are used as the input.
