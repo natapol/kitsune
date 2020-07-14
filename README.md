@@ -31,18 +31,23 @@ Requirement packages:
 biopython >= 1.68, scipy >= 0.18.1, numpy >= 1.1.0, tqdm >= 4.32
 
 ### pip
+
 ```bash
 pip install kitsune
 ```
+
 ### Clone from github
+
 ```bash
 git clone https://github.com/natapol/kitsune
 cd kitsune/
 python nstall setup.py
 ```
+
 ## Usage
 
-## Overview of kitsune
+### Overview of kitsune
+
 ```bash
 usage: kitsune <command> [<args>]
 
@@ -53,11 +58,13 @@ ofc <filenames>                   Compute observed feature frequencies.
 kopt <filenames>                  Compute recommended choice (optimal) of kmer within a given kmer interval for a set of genomes using the cre, acf and ofc.
 dmatrix <filenames>               Compute distance matrix.
 ```
+
 ### Calculate CRE, ACF, and OFC value for specific kmer
 
 Kitsune provides three commands to calculate an appropiate k-mer using CRE, ACF, and OCF:
 
 ### Calculate CRE
+
 ```bash
 kitsune cre -h
 usage: kitsune [-h] [--fast] [--canonical] -ke KEND [-kf KFROM] [-t THREAD]
@@ -80,10 +87,10 @@ optional arguments:
   -t THREAD, --thread THREAD
   -o OUTPUT, --output OUTPUT
                         output filename
-                        
-```        
+```
 
 ### Calculate ACF
+
 ```bash
 kitsune acf -h
 usage: kitsune [-h] [--fast] [--canonical] -k KMERS [KMERS ...] [-t THREAD]
@@ -104,9 +111,10 @@ optional arguments:
   -t THREAD, --thread THREAD
   -o OUTPUT, --output OUTPUT
                         output filename
-```                    
+```
 
 ### Calculate OFC
+
 ```bash
 kitsune ofc -h
 usage: kitsune [-h] [--fast] [--canonical] -k KMERS [KMERS ...] [-t THREAD]
@@ -128,11 +136,12 @@ optional arguments:
                         output filename
 ```
 
-### Example
+### General Example
+
 ```bash
 kitsune cre genome1.fna -kf 5 -ke 10
 kitsune acf genome1.fna genome2.fna -k 5
-kitsune ofc genome_fasta/* -k 5 
+kitsune ofc genome_fasta/* -k 5
 ```
 
 ### Calculate genomic distance at specific k-mer from kmer frequency vectors of two of genomes
@@ -163,7 +172,7 @@ mash             | MASH distance
 jsmash           | MASH Jensen-Shannon distance
 jaccarddistp     | Jaccard-Needham dissimilarity Probability
 
-Kitsune provides a choice of distance transformation proposed by Fan et.al https://doi.org/10.1186/s12864-015-1647-5 .
+Kitsune provides a choice of distance transformation proposed by [Fan et.al](https://doi.org/10.1186/s12864-015-1647-5).
 
 ### Calculate a distance matrix
 
@@ -207,7 +216,7 @@ kitsune dmatrix genome1.fna genome2.fna -k 11 -d hensenshannon --canonical --fas
 
 ### Find optimum k-mer from a given set of genomes 
 
-Kitsune provides a wrap-up comand to find optimum k-mer length for a given set of genome within a given kmer interval. 
+Kitsune provides a wrap-up comand to find optimum k-mer length for a given set of genome within a given kmer interval.
 
 ```bash
 kitsune kopt -h
@@ -241,13 +250,12 @@ optional arguments:
                         Number of threads (integer)
 ```
 
-### Example
-First download the example files.[Download]("https://github.com/natapol/kitsune/blob/master/examaple_viral_genomes.zip")
+### Example dataset
+
+First download the example files. [Download](https://github.com/natapol/kitsune/blob/master/examaple_viral_genomes.zip)
 
 ```bash
  kitsune kopt genomeList.txt -kl 15 --canonical --fast -t 4 -o out.txt
 ```
 
-**Please be aware that this command will use big computational resources when large number of genomes and/or large genome size are used as the input. 
-
-
+**Please be aware that this command will use big computational resources when large number of genomes and/or large genome size are used as the input.
