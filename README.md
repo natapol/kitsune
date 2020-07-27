@@ -175,6 +175,8 @@ yule             | Yule dissimilarity
 mash             | MASH distance
 jsmash           | MASH Jensen-Shannon distance
 jaccarddistp     | Jaccard-Needham dissimilarity Probability
+euclidean_of_frequency | Euclidean distance of Frequency
+
 
 Kitsune provides a choice of distance transformation proposed by [Fan et.al](https://doi.org/10.1186/s12864-015-1647-5).
 

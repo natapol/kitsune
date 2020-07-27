@@ -180,31 +180,32 @@ Kitsune provides a commands to calculate genomic distance using
 different distance estimation method. Users can assess the impact of a
 selected k-mer length on the genomic distnace of choice below.
 
-=============== =========================================
-distance option name
-=============== =========================================
-braycurtis      Bray-Curtis distance
-canberra        Canberra distance
-chebyshev       Chebyshev distance
-cityblock       City Block (Manhattan) distance
-correlation     Correlation distance
-cosine          Cosine distance
-euclidean       Euclidean distance
-jensenshannon   Jensen-Shannon distance
-sqeuclidean     Squared Euclidean distance
-dice            Dice dissimilarity
-hamming         Hamming distance
-jaccard         Jaccard-Needham dissimilarity
-kulsinski       Kulsinski dissimilarity
-rogerstanimoto  Rogers-Tanimoto dissimilarity
-russellrao      Russell-Rao dissimilarity
-sokalmichener   Sokal-Michener dissimilarity
-sokalsneath     Sokal-Sneath dissimilarity
-yule            Yule dissimilarity
-mash            MASH distance
-jsmash          MASH Jensen-Shannon distance
-jaccarddistp    Jaccard-Needham dissimilarity Probability
-=============== =========================================
+====================== =========================================
+distance option        name
+====================== =========================================
+braycurtis             Bray-Curtis distance
+canberra               Canberra distance
+chebyshev              Chebyshev distance
+cityblock              City Block (Manhattan) distance
+correlation            Correlation distance
+cosine                 Cosine distance
+euclidean              Euclidean distance
+jensenshannon          Jensen-Shannon distance
+sqeuclidean            Squared Euclidean distance
+dice                   Dice dissimilarity
+hamming                Hamming distance
+jaccard                Jaccard-Needham dissimilarity
+kulsinski              Kulsinski dissimilarity
+rogerstanimoto         Rogers-Tanimoto dissimilarity
+russellrao             Russell-Rao dissimilarity
+sokalmichener          Sokal-Michener dissimilarity
+sokalsneath            Sokal-Sneath dissimilarity
+yule                   Yule dissimilarity
+mash                   MASH distance
+jsmash                 MASH Jensen-Shannon distance
+jaccarddistp           Jaccard-Needham dissimilarity Probability
+euclidean_of_frequency Euclidean distance of Frequency
+====================== =========================================
 
 Kitsune provides a choice of distance transformation proposed by `Fan
 et.al <https://doi.org/10.1186/s12864-015-1647-5>`__.
