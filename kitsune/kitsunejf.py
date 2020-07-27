@@ -135,7 +135,11 @@ def jaccarddistp(u, v):
     norm = math.sqrt(m) * j_obs / math.sqrt(sigma)
     return chi2.pdf(norm*norm, 1)
 
-
+def euclidean_of_frequency(u, v):
+    """
+    euclidean distance of frequency
+    """
+    return distance.euclidean(u, v)
 
 DISTANCE_FUNCTION = {
     'braycurtis': distance.braycurtis,
@@ -158,7 +162,8 @@ DISTANCE_FUNCTION = {
     'jensenshannon': distance.jensenshannon,
     'mash': mash,
     'jsmash' : jsmash,
-    'jaccarddistp': jaccarddistp
+    'jaccarddistp': jaccarddistp,
+    'euclidean_of_frequency': euclidean_of_frequency
 }
 
 NUMERIC_DISTANCE = [
@@ -185,8 +190,9 @@ BOOLEAN_DISTANCE = [
     distance.yule
 ]
 
-PROB_DISTANCE =[
-    distance.jensenshannon
+PROB_DISTANCE = [
+    distance.jensenshannon,
+    euclidean_of_frequency
 ]
 
 class Kmercount(collections.Counter):
