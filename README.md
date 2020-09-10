@@ -20,7 +20,7 @@ KITSUNE will calculte the three matrices across considered k-mer range:
 Moreover, KITSUNE also provides various genomic distance calculations from the k-mer frequency vectors that can be used for species identification or phylogenomic tree construction.  
 
 If you use KITSUNE in your research, please cite: KITSUNE: A Tool for Identifying Empirically Optimal K-mer Length for Alignment-free Phylogenomic Analysis.
-[Reference](https://github.com/natapol/kitsune)
+[Reference](https://www.frontiersin.org/articles/10.3389/fbioe.2020.556413/abstract)
 
 ## Installation
 
