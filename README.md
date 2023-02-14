@@ -280,4 +280,4 @@ First download the example files. [Download](examples/example_viral_genomes.zip)
 kitsune kopt --filenames genome_list -kl 15 --canonical --fast -t 4 -n 1 -o out.txt
 ```
 
-**Please be aware that this command will use big computational resources when large number of genomes and/or large genome size are used as the input.
+> :warning: _Please be aware that this command will use big computational resources when large number of genomes and/or large genome size are used as the input._
