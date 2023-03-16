@@ -1,6 +1,7 @@
 import argparse as ap
 import collections
 import json
+import sys
 from operator import attrgetter
 
 from tqdm import tqdm
@@ -88,13 +89,8 @@ def run(args):
     
     else:
         outdata = json.dumps(outdata, indent=2)
-        
-    if args.output is not None:
-        with open(args.output, 'w') as ofhandle:
-            ofhandle.write(outdata)
-    
-    else:
-        print(outdata)
+
+    print(outdata, file=open(args.output, "w+") if args.output else None)
 
 
 if __name__ == "__main__":
