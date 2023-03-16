@@ -12,8 +12,8 @@ K-mer based approach is simple and fast yet has been widely used in many applica
 KITSUNE will calculte the three matrices across considered k-mer range:
 
 1. Cumulative Relative Entropy (CRE)
-1. Averrage number of Common Feature (ACF)
-1. Obserbed Common Feature (OCF)
+1. Average number of Common Features (ACF)
+1. Observed Common Features (OCF)
 
 Moreover, KITSUNE also provides various genomic distance calculations from the k-mer frequency vectors that can be used for species identification or phylogenomic tree construction.  
 
@@ -61,7 +61,7 @@ $ kitsune --help
 usage: kitsune <command> [<args>]
 
 Available commands:
-  acf      Compute average number of common feature between signatures
+  acf      Compute average number of common features between signatures
   cre      Compute cumulative relative entropy
   dmatrix  Compute distance matrix
   kopt     Compute recommended choice (optimal) of kmer within a given kmer interval for a set of genomes using the cre, acf and ofc
@@ -108,7 +108,7 @@ usage: kitsune (acf) [-h] --filenames FILENAMES [FILENAMES ...] [--fast]
                      [--canonical] -k KMERS [KMERS ...] [-t THREAD]
                      [-o OUTPUT]
 
-Calculate an average number of common feature pairwise between one genome
+Calculate an average number of common features pairwise between one genome
 against others
 
 optional arguments:
@@ -152,7 +152,7 @@ optional arguments:
 #### General Example
 
 ```bash
-kitsune cre --filenames genome1.fna -kf 5 -ke 10
+kitsune cre --filename genome1.fna -kf 5 -ke 10
 kitsune acf --filenames genome1.fna genome2.fna -k 5
 kitsune ofc --filenames genome_fasta/* -k 5
 ```
@@ -234,42 +234,45 @@ Kitsune provides a wrap-up comand to find optimum k-mer length for a given set o
 ```bash
 $ kitsune kopt -h
 
-usage: kitsune (ofc) [-h] --filenames FILENAMES [--fast] [--canonical] -kl
-                     KLARGE [-o OUTPUT] [--closely_related] [-x CRE_CUTOFF]
-                     [-y ACF_CUTOFF] [-t THREAD] [-n NPROC]
+usage: kitsune (kopt) [-h] [--acf-cutoff ACF_CUTOFF] [--canonical]
+                      [--closely-related] [--cre-cutoff CRE_CUTOFF] [--fast]
+                      --filenames FILENAMES [--hashsize HASHSIZE]
+                      [--in-memory] [--k-min K_MIN] --k-max K_MAX
+                      [--lower LOWER] [--nproc NPROC] [--output OUTPUT]
+                      [--threads THREADS]
 
-Find the recommended optimal kmer using acf,cre and ofc for a given set of
-genomes. Example: kitsune kopt genomeList.txt -kl 15 --canonical --fast -t 4
--o out.txt
+Optimal kmer size selection for a set of genomes using Average number of
+Common Features (ACF), Cumulative Relative Entropy (CRE), and Observed Common
+Features (OCF). Example: kitsune kopt --filenames genomeList.txt --k-min 4
+--k-max 12 --canonical --fast
 
 optional arguments:
   -h, --help            show this help message and exit
-  --filenames FILENAMES
-                        A file that list the path to all genomes (fasta
-                        format) with extension as (.txt, .csv, .tab) or no
-                        extension (default: None)
+  --acf-cutoff ACF_CUTOFF
+                        Cutoff to use in selecting kmers whose ACFs are >=
+                        (cutoff * max(ACF)) (default: 0.1)
+  --canonical           Jellyfish count only canonical kmers (default: False)
+  --closely-related     Use in case of closely related genomes (default:
+                        False)
+  --cre-cutoff CRE_CUTOFF
+                        Cutoff to use in selecting kmers whose CREs are <=
+                        (cutoff * max(CRE)) (default: 0.1)
   --fast                Jellyfish one-pass calculation (faster) (default:
                         False)
-  --canonical           Jellyfish count only canonical mer (default: False)
-  -kl KLARGE, --klarge KLARGE
-                        Largest k-mer length to consider, note: the smallest
-                        kmer length is 4 (default: None)
-  -o OUTPUT, --output OUTPUT
-                        Output filename (default: None)
-  --closely_related     For closely related set of genomes, use this option
-                        (default: False)
-  -x CRE_CUTOFF, --cre_cutoff CRE_CUTOFF
-                        Cutoff to use in selecting kmers whose cre's are <=
-                        (cutoff * max(cre)), Default = 10 percent, ie x=0.1
-                        (default: 0.1)
-  -y ACF_CUTOFF, --acf_cutoff ACF_CUTOFF
-                        Cutoff to use in selecting kmers whose acf's are >=
-                        (cutoff * max(acf)), Default = 10 percent, ie y=0.1
-                        (default: 0.1)
-  -t THREAD, --thread THREAD
-                        Number of threads (default: 1)
-  -n NPROC, --nproc NPROC
-                        Number of processes (default: 1)
+  --filenames FILENAMES
+                        Path to the file with the list of genome files paths.
+                        There should be at list 2 input genomes (default:
+                        None)
+  --hashsize HASHSIZE   Jellyfish initial hash size (default: 100M)
+  --in-memory           Keep Jellyfish counts in memory (default: False)
+  --k-min K_MIN         Minimum kmer size (default: 4)
+  --k-max K_MAX         Maximum kmer size (default: None)
+  --lower LOWER         Do not let Jellyfish output kmers with count < --lower
+                        (default: 1)
+  --nproc NPROC         Maximum number of CPUs to make it parallel (default:
+                        1)
+  --output OUTPUT       Path to the output file (default: None)
+  --threads THREADS     Maximum number of threads for Jellyfish (default: 1)
 ```
 
 ### Example dataset
@@ -277,7 +280,7 @@ optional arguments:
 First download the example files. [Download](examples/example_viral_genomes.zip)
 
 ```bash
-kitsune kopt --filenames genome_list -kl 15 --canonical --fast -t 4 -n 1 -o out.txt
+kitsune kopt --filenames genome_list --k-min 6 --k-max 21 --canonical --fast --threads 4 --nproc 2 --output out.txt
 ```
 
 > :warning: _Please be aware that this command will use big computational resources when large number of genomes and/or large genome size are used as the input._
