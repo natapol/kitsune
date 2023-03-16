@@ -7,12 +7,12 @@ import importlib
 import sys
 
 __author__ = "Natapol Pornputtapong (natapol.p@chula.ac.th)"
-__version__ = "1.3.2"
-__date__ = "Feb 13, 2023"
+__version__ = "1.3.3"
+__date__ = "Mar 15, 2023"
 
 # Define the set of commands with help messages
 COMMANDS = {
-    "acf": "Compute average number of common feature between signatures",
+    "acf": "Compute average number of common features between signatures",
     "cre": "Compute cumulative relative entropy",
     "dmatrix": "Compute distance matrix",
     "kopt": ("Compute recommended choice (optimal) of kmer within a given "
