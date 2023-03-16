@@ -1,4 +1,6 @@
 import argparse as ap
+import sys
+from operator import itemgetter
 
 from tqdm import tqdm
 
@@ -94,15 +96,9 @@ def run(args):
 
     outdata = cal_acf(args.filenames, **vars(args))
     outdata = sorted(outdata.items(), key=itemgetter(0))
-    
-    if args.output is not None:
-        with open(args.output, 'w+') as ofhandle:
-            for data in outdata:
-                ofhandle.write("{}\n".format("\t".join([str(x) for x in data])))
-    
-    else:
-        for data in outdata:
-            print("{}".format("\t".join([str(x) for x in data])))
+    outdata = '\n'.join(['\t'.join([str(x) for x in data]) for data in outdata])
+
+    print(outdata, file=open(args.output, "w+") if args.output else None)
 
 
 if __name__ == "__main__":
