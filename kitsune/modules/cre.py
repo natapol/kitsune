@@ -1,5 +1,7 @@
 import argparse as ap
 import math
+import sys
+from operator import itemgetter
 
 from tqdm import tqdm
 
@@ -92,9 +94,9 @@ def cal_re(a0, a1, a2):
     
     for key in a0.keys():
         realf = a0[key]
-        left = a1[key[0:-1]]
-        right = a1[key[1:]]
-        below = a2[key[1:-1]]
+        left = a1[key[:-1]] if key[:-1] in a1 else 0
+        right = a1[key[1:]] if key[1:] in a1 else 0
+        below = a2[key[1:-1]] if key[1:-1] in a2 else 0
         
         if 0 not in (left, right, below):
             expectf = left * right / below
@@ -114,15 +116,8 @@ def run(args):
     outdata = cal_cre(args.filename, **vars(args))
     outdata = sorted(outdata.items(), key=itemgetter(0))
     outdata = '\n'.join(['\t'.join([str(x) for x in data]) for data in outdata])
-    
-    if args.output is not None:
-        with open(args.output, 'w') as ofhandle:
-            for data in outdata:
-                ofhandle.write("{}\n".format("\t".join([str(x) for x in data])))
-    
-    else:
-        for data in outdata:
-            print("{}".format("\t".join([str(x) for x in data])))
+
+    print(outdata, file=open(args.output, "w+") if args.output else None)
 
 
 if __name__ == "__main__":
