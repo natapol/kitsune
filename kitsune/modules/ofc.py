@@ -1,5 +1,7 @@
 import argparse as ap
 import collections
+import sys
+from operator import itemgetter
 
 import numpy as np
 from tqdm import tqdm
@@ -30,12 +32,12 @@ def read_params(args):
     return p.parse_args(args)
 
 
-def cal_ofc(fsas, kmer, **karg):
+def cal_ofc(fsas, kmers, **karg):
     """ Calculate shannon entropy of observed feature occurrences (OFC)
         ofc(l) = -sum(p ln p)
     Args:
-        fsa a genome file
-        k_mers a list of kmer to calculate
+        fsas a list of genome files
+        kmers a list of kmer to calculate
 
     Returns: float shannon entropy
 
@@ -43,13 +45,14 @@ def cal_ofc(fsas, kmer, **karg):
 
     result = dict()
     
-    keys = list()
-    for fsa in fsas:
-        keys.extend(list(jf.Kmercount(fsa, kmer, **karg).keys()))
-        
-    count_feature = list(collections.Counter((collections.Counter(keys).values())).values())
-    lnp = np.log2(count_feature) - (kmer * 2)
-    result[kmer] = np.sum(np.exp2(lnp) * lnp) * -1
+    for kmer in kmers:
+        keys = list()
+        for fsa in fsas:
+            keys.extend(list(jf.Kmercount(fsa, kmer, **karg).keys()))
+            
+        count_feature = list(collections.Counter((collections.Counter(keys).values())).values())
+        lnp = np.log2(count_feature) - (kmer * 2)
+        result[kmer] = np.sum(np.exp2(lnp) * lnp) * -1
 
     return result
 
@@ -62,17 +65,11 @@ def run(args):
     # Load command line parameters
     args = read_params(args)
 
-    outdata = cal_ofc(args.filenames, args.kmers, **vars(args))
+    outdata = cal_ofc(args.filenames, **vars(args))
     outdata = sorted(outdata.items(), key=itemgetter(0))
-    
-    if args.output is not None:
-        with open(args.output, 'w') as ofhandle:
-            for data in outdata:
-                ofhandle.write("{}\n".format("\t".join([str(x) for x in data])))
-    
-    else:
-        for data in outdata:
-            print("{}".format("\t".join([str(x) for x in data])))
+    outdata = '\n'.join(['\t'.join([str(x) for x in data]) for data in outdata])
+
+    print(outdata, file=open(args.output, "w+") if args.output else None)
 
 
 if __name__ == "__main__":

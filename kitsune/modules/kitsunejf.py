@@ -1,4 +1,3 @@
-import collections
 import errno
 import math
 import os
@@ -172,7 +171,7 @@ PROB_DISTANCE = [
 ]
 
 
-class Kmercount(collections.Counter):
+class Kmercount(dict):
 
     def __init__(self, fsa, k_mer, **karg):
         self.kmer = k_mer
@@ -205,12 +204,11 @@ class Kmercount(collections.Counter):
             if 'fast' in karg and karg['fast']:
                 # for genome with one step
                 dumpdata = subprocess.getoutput("""
-                    {0} count {8} -m {1} -s {3} -t {4} -o {5}.jf {6}
-                    {0} dump -c -L {7} {5}.jf
+                    {0} count {7} -L {6} -m {1} -s {2} -t {3} -o {4}.jf {5}
+                    {0} dump -c -L {6} {4}.jf
                     """.format(
                         "jellyfish",
                         self.kmer,
-                        karg['bchashsize'],
                         karg['hashsize'],
                         karg['thread'],
                         os.path.join(tmpdirname, filebasename),
@@ -223,7 +221,7 @@ class Kmercount(collections.Counter):
             else:
                 dumpdata = subprocess.getoutput("""
                     {0} bc {8} -m {1} -s {2} -t {4} -o {5}.bc {6}
-                    {0} count {8} -m {1} -s {3} -t {4} --bc {5}.bc -o {5}.jf {6}
+                    {0} count {8} -L {7} -m {1} -s {3} -t {4} --bc {5}.bc -o {5}.jf {6}
                     {0} dump -c -L {7} {5}.jf
                     """.format(
                         "jellyfish",
