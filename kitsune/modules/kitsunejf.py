@@ -239,7 +239,7 @@ class Kmercount(dict):
         datadict = dict()
 
         try:
-            for line in dumpdata.splitlines('\n'):
+            for line in dumpdata.splitlines():
                 dat = line.rstrip().split(' ')
                 datadict[dat[0]] = int(dat[1])
 
