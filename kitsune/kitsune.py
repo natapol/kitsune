@@ -7,8 +7,8 @@ import importlib
 import sys
 
 __author__ = "Natapol Pornputtapong (natapol.p@chula.ac.th)"
-__version__ = "1.3.3"
-__date__ = "Mar 15, 2023"
+__version__ = "1.3.5"
+__date__ = "May 16, 2024"
 
 # Define the set of commands with help messages
 COMMANDS = {
