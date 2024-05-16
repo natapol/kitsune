@@ -7,10 +7,13 @@ import subprocess
 import tempfile
 import warnings
 
+from pkg_resources import packaging
+
 from shutil import which
 
 import numpy as np
 
+import scipy
 from scipy.stats import chi2
 from scipy.spatial import distance
 from scipy.special import loggamma
@@ -150,13 +153,18 @@ BOOLEAN_DISTANCE = [
     distance.hamming,
     distance.jaccard,
     jaccarddistp,
-    distance.kulsinski,
+    distance.kulczynski1,
     distance.rogerstanimoto,
     distance.russellrao,
     distance.sokalmichener,
     distance.sokalsneath,
     distance.yule
 ]
+
+if  packaging.version.parse(scipy.__version__) >= packaging.version.parse("1.8.0"):
+    BOOLEAN_DISTANCE.append(distance.kulczynski1)
+else:
+    BOOLEAN_DISTANCE.append(distance.kulsinski)
 
 PROB_DISTANCE = [
     distance.jensenshannon,
@@ -233,7 +241,7 @@ class Kmercount(collections.Counter):
         datadict = dict()
 
         try:
-            for line in dumpdata.split('\n'):
+            for line in dumpdata.splitlines('\n'):
                 dat = line.rstrip().split(' ')
                 datadict[dat[0]] = int(dat[1])
 
