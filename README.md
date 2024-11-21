@@ -1,6 +1,6 @@
 # KITSUNE: K-mer-length Iterative Selection for UNbiased Ecophylogenomics
 
-<img src="https://github.com/natapol/kitsune/blob/master/logoKITSUNE.png" width="40%">
+<img src="logoKITSUNE.png" width="40%">
 
 [![PyPI version](https://badge.fury.io/py/kitsune.svg)](https://badge.fury.io/py/kitsune)
 [![Please Cite](https://zenodo.org/badge/doi/10.3389/fbioe.2020.556413.svg)](https://doi.org/10.3389/fbioe.2020.556413
