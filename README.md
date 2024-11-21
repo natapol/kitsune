@@ -3,13 +3,15 @@
 <img src="https://github.com/natapol/kitsune/blob/master/logoKITSUNE.png" width="40%">
 
 [![PyPI version](https://badge.fury.io/py/kitsune.svg)](https://badge.fury.io/py/kitsune)
-![Upload Python Package](https://github.com/natapol/kitsune/workflows/Upload%20Python%20Package/badge.svg)
+[![Please Cite](https://zenodo.org/badge/doi/10.3389/fbioe.2020.556413.svg)](https://doi.org/10.3389/fbioe.2020.556413
+)
+[![Source code](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/natapol/kitsune)
 
-KITSUNE is a toolkit for evaluation of the length of k-mer in a given genome dataset for alignment-free phylogenimic analysis.
+KITSUNE is a toolkit for evaluating the length of k-mer in a given genome dataset for alignment-free phylogenomic analysis.
 
-K-mer based approach is simple and fast yet has been widely used in many applications including biological sequence comparison. However, selection of an appropriate k-mer length to obtain a good information content for comparison is normally overlooked. The optimum k-mer length is a prerequsite to obtain biological meaningful genomic distance for assesment of phylogenetic relationships. Therefore, we have developed KITSUNE to aid k-mer length selection process in a systematic way, based on a three-steps aproach described in [Viral Phylogenomics Using an Alignment-Free Method: A Three-Step Approach to Determine Optimal Length of k-mer](https://doi.org/10.1038/srep40712).
+K-mer based approach is simple and fast yet has been widely used in many applications including biological sequence comparison. However, selection of an appropriate k-mer length to obtain good information content for comparison is normally overlooked. The optimum k-mer length is a prerequisite to obtain biological meaningful genomic distance for assessment of phylogenetic relationships. Therefore, we have developed KITSUNE to aid k-mer length selection process in a systematic way, based on a three-steps approach described in [Viral Phylogenomics Using an Alignment-Free Method: A Three-Step Approach to Determine Optimal Length of k-mer](https://doi.org/10.1038/srep40712).
 
-KITSUNE will calculte the three matrices across considered k-mer range:
+KITSUNE will calculate the three matrices across considered k-mer range:
 
 1. Cumulative Relative Entropy (CRE)
 1. Average number of Common Features (ACF)
@@ -28,7 +30,7 @@ Kitsune is developed under python version 3 environment. We recommend users use 
 
 Requirement packages: scipy >= 0.18.1, numpy >= 1.1.0, tqdm >= 4.32
 
-Kitsune also requires [Jellyfish](https://doi.org/10.1093/bioinformatics/btr011) for k-mer counting as external software dependency. Thus, you need to install it before running the tool: [https://github.com/gmarcais/Jellyfish](https://github.com/gmarcais/Jellyfish)
+Kitsune also requires [Jellyfish](https://doi.org/10.1093/bioinformatics/btr011) for k-mer counting as an external software dependency. Thus, you need to install it before running the tool: [https://github.com/gmarcais/Jellyfish](https://github.com/gmarcais/Jellyfish)
 
 ### Install with pip
 
