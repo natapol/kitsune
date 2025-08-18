@@ -2,6 +2,7 @@ import errno
 import math
 import os
 import platform
+import shutil
 import subprocess
 import tempfile
 import warnings
@@ -170,6 +171,18 @@ PROB_DISTANCE = [
     euclidean_of_frequency
 ]
 
+def make_tmpdir(use_ram=False, user_dir=None):
+    """
+    Returns a path to the temporary directory
+    """
+    base = user_dir
+    if base is None and use_ram and os.path.isdir('/dev/shm') and os.access('/dev/shm', os.W_OK):
+        base = '/dev/shm'
+
+    tmpdirname = tempfile.mkdtemp(dir=base)
+
+    return tmpdirname
+
 
 class Kmercount(dict):
 
@@ -198,10 +211,17 @@ class Kmercount(dict):
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), fsa)
 
         filebasename = os.path.basename(fsa)
+        
+        # create temporary directory
 
-        with tempfile.TemporaryDirectory() as tmpdirname:
+        if 'use_ram' in karg and karg['use_ram']:
+            tmpdirname = make_tmpdir(use_ram=True, user_dir=karg.get('tmpdir'))
+        else:
+            tmpdirname = make_tmpdir(use_ram=False, user_dir=karg.get('tmpdir'))
 
-            if 'fast' in karg and karg['fast']:
+        jf_out = os.path.join(tmpdirname, filebasename + '.jf')
+
+        if 'fast' in karg and karg['fast']:
                 # for genome with one step
                 dumpdata = subprocess.getoutput("""
                     {0} count {7} -L {6} -m {1} -s {2} -t {3} -o {4}.jf {5}
@@ -217,8 +237,24 @@ class Kmercount(dict):
                         canonical
                     )
                 )
+        elif 'use_awk' in karg and karg['use_awk']:
+                # 1-pass + awk filtering (analogous to jellyfish bc 2-pass outcome)
+                dumpdata = subprocess.getoutput("""
+                    {0} count {7} -L {6} -m {1} -s {2} -t {3} -o {4}.jf {5}
+                    {0} dump -c -L {6} {4}.jf | awk -v min=2 '$2>=min {{print $1, $2}}'
+                    """.format(
+                        "jellyfish",
+                        self.kmer,
+                        karg['hashsize'],
+                        karg['thread'],
+                        os.path.join(tmpdirname, filebasename),
+                        fsa,
+                        karg['lower'],
+                        canonical
+                    )
+                )
 
-            else:
+        else:
                 dumpdata = subprocess.getoutput("""
                     {0} bc {8} -m {1} -s {2} -t {4} -o {5}.bc {6}
                     {0} count {8} -L {7} -m {1} -s {3} -t {4} --bc {5}.bc -o {5}.jf {6}
@@ -235,8 +271,9 @@ class Kmercount(dict):
                         canonical
                     )
                 )
-
-        datadict = dict()
+        from shutil import rmtree
+        shutil.rmtree(tmpdirname)
+        datadict = {}
 
         try:
             for line in dumpdata.splitlines():
@@ -285,11 +322,12 @@ class Kmercount(dict):
         mers = list(self.keys())
         mers.extend(list(other.keys()))
         mers = list(set(mers))
-        a = list()
-        b = list()
+        a = []
+        b = []
 
         for mer in mers:
             a.append(self[mer])
             b.append(other[mer])
 
         return np.array(a), np.array(b)
+    

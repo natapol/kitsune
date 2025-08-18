@@ -109,7 +109,7 @@ def read_params(args):
         help="Maximum kmer size"
     )
     p.add_argument(
-        "--lower",
+        "-l", "--lower",
         type=int,
         default=1,
         help="Do not let Jellyfish output kmers with count < --lower"
@@ -121,16 +121,28 @@ def read_params(args):
         help="Maximum number of CPUs to make it parallel"
     )
     p.add_argument(
-        "--output",
+        "-o", "--output",
         type=os.path.abspath,
         help="Path to the output file"
     )
     p.add_argument(
-        "--threads",
+        "-t", "--threads",
         type=int,
         default=1,
         help="Maximum number of threads for Jellyfish"
     )
+    p.add_argument(
+        "--use-awk", 
+        action="store_true",
+        dest="use_awk", 
+        help="Use awk to filter out low frequency k-mers as alternative"
+    )
+    p.add_argument("--use-ram", 
+        action="store_true", 
+        dest="use_ram",
+        help="Use /dev/shm for temporary directory"
+    )
+    
     return p.parse_args(args)
 
 
@@ -139,6 +151,8 @@ def count_kmers(
     kmin: int = 4,
     kmax: int = 4,
     fast: bool = False,
+    use_awk: bool = False,
+    use_ram: bool = False,
     canonical: bool = False,
     lower: int = 1,
     hashsize: str = "100M",
@@ -154,6 +168,8 @@ def count_kmers(
     :param canonical:   Jellyfish count only canonical kmers
     :param lower:       Do not let Jellyfish output kmers with count < --lower
     :param hashsize:    Jellyfish initial hash size
+    :param use_awk:     Use awk to filter out low frequency k-mers as alternative
+    :param use_ram:     Use /dev/shm for temporary directory
     :param threads:     Make it parallel
     :return:            Dictionary with the list of kmers per kmer size
     """
@@ -161,7 +177,7 @@ def count_kmers(
     # Define a range of kmer sizes
     kmer_sizes = list(range(kmin, kmax + 1))
 
-    datadict = dict()
+    datadict = {}
 
     for kmer in kmer_sizes:
         datadict[kmer] = jf.Kmercount(
@@ -171,7 +187,9 @@ def count_kmers(
             lower=lower,
             hashsize=hashsize,
             canonical=canonical,
-            fast=fast
+            fast=fast,
+            use_awk=use_awk,
+            use_ram=use_ram
         )
 
     return genome, datadict
@@ -188,7 +206,7 @@ def filter(n: List[str], m: int) -> List[int]:
 
     c = collections.Counter(n)
     cr = set(n)
-    result = list()
+    result = []
 
     for i in cr:
         if c[i] >= int(m * 0.5):
@@ -204,6 +222,8 @@ def par_acf(
     kmax: Optional[int] = None,
     counts: Optional[Dict[str, Dict[int, jf.Kmercount]]] = None,
     fast: bool = False,
+    use_awk: bool = False,
+    use_ram: bool = False,
     canonical: bool = False,
     lower: int = 1,
     hashsize: str = "100M",
@@ -219,6 +239,8 @@ def par_acf(
     :param kmax:        Maximum kmer size
     :param counts:      Kmer counts for the input genomes
     :param fast:        Jellyfish one-pass calculation (faster)
+    :param use_awk:     Use awk to filter out low frequency k-mers as alternative
+    :param use_ram:     Use /dev/shm for temporary directory
     :param canonical:   Jellyfish count only canonical kmers
     :param lower:       Do not let Jellyfish output kmers with count < --lower
     :param hashsize:    Jellyfish initial hash size
@@ -226,7 +248,7 @@ def par_acf(
     :return:            ACF
     """
 
-    res_acf = dict()
+    res_acf = {}
 
     for kmer in range(kmin, kmax + 1):
         if not counts:
@@ -235,6 +257,8 @@ def par_acf(
                 kmin=kmer,
                 kmax=kmer,
                 fast=fast,
+                use_awk=use_awk,
+                use_ram=use_ram,
                 canonical=canonical,
                 lower=lower,
                 hashsize=hashsize,
@@ -263,6 +287,8 @@ def par_cre(
     kmax: Optional[int] = None,
     counts: Optional[Dict[str, Dict[int, jf.Kmercount]]] = None,
     fast: bool = False,
+    use_awk: bool = False,
+    use_ram: bool = False,
     canonical: bool = False,
     lower: int = 1,
     hashsize: str = "100M",
@@ -277,6 +303,8 @@ def par_cre(
     :param kmax:        Maximum kmer size
     :param counts:      Kmer counts for the input genomes
     :param fast:        Jellyfish one-pass calculation (faster)
+    :param use_awk:     Use awk to filter out low frequency k-mers as alternative
+    :param use_ram:     Use /dev/shm for temporary directory
     :param canonical:   Jellyfish count only canonical kmers
     :param lower:       Do not let Jellyfish output kmers with count < --lower
     :param hashsize:    Jellyfish initial hash size
@@ -284,7 +312,7 @@ def par_cre(
     :return:            CRE
     """
 
-    res_cre = dict()
+    res_cre = {}
 
     def cal_re(a0: jf.Kmercount, a1: jf.Kmercount, a2: jf.Kmercount) -> float:
         """
@@ -319,6 +347,8 @@ def par_cre(
     count_kmers_partial = partial(
         count_kmers,
         fast=fast,
+        use_awk=use_awk,
+        use_ram=use_ram,
         canonical=canonical,
         lower=lower,
         hashsize=hashsize,
@@ -362,6 +392,8 @@ def par_ofc(
     genomes: Optional[List[str]] = None,
     counts: Optional[Dict[str, Dict[str, Dict[str, int]]]] = None,
     fast: bool = False,
+    use_awk: bool = False,
+    use_ram: bool = False,
     canonical: bool = False,
     lower: int = 1,
     hashsize: str = "100M",
@@ -375,6 +407,8 @@ def par_ofc(
     :param genomes:     List of input genomes
     :param counts:      Kmer counts for the input genomes
     :param fast:        Jellyfish one-pass calculation (faster)
+    :param use_awk:     Use awk to filter out low frequency k-mers as alternative
+    :param use_ram:     Use /dev/shm for temporary directory
     :param canonical:   Jellyfish count only canonical kmers
     :param lower:       Do not let Jellyfish output kmers with count < --lower
     :param hashsize:    Jellyfish initial hash size
@@ -382,13 +416,15 @@ def par_ofc(
     :return:            OCF
     """
 
-    keys = list()
+    keys = []
 
     count_kmers_partial = partial(
         count_kmers,
         kmin=kmer,
         kmax=kmer,
         fast=fast,
+        use_awk=use_awk,
+        use_ram=use_ram,
         canonical=canonical,
         lower=lower,
         hashsize=hashsize,
@@ -419,6 +455,8 @@ def optimal_kmer_size(
     acf_cutoff: float = 0.1,
     cre_cutoff: float = 0.1,
     fast: bool = False,
+    use_awk: bool = False,
+    use_ram: bool = False,
     canonical: bool = False,
     lower: int = 1,
     hashsize: str = "100M",
@@ -461,7 +499,7 @@ def optimal_kmer_size(
     if kmax <= kmin:
         raise ValueError("Invalid kmer size interval")
 
-    counts = dict()
+    counts = {}
 
     if in_memory:
         print("Counting kmers in {} genomes".format(len(genomes)))
@@ -503,7 +541,7 @@ def optimal_kmer_size(
     if not closely_related:
         print("Computing Average number of Common Features (ACF) pairwise")
 
-        acf_results = list()
+        acf_results = []
 
         genomes_comb = combinations(genomes, 2)
         genomes_comb_len = int(math.factorial(len(genomes)) / (math.factorial(len(genomes) - 2) * 2))
@@ -518,6 +556,8 @@ def optimal_kmer_size(
                 kmax=kmax,
                 counts=counts,
                 fast=fast,
+                use_awk=use_awk,
+                use_ram=use_ram,
                 canonical=canonical,
                 lower=lower,
                 hashsize=hashsize,
@@ -556,7 +596,7 @@ def optimal_kmer_size(
 
     print("Computing Cumulative Relative Entropy (CRE)")
 
-    cre_results = list()
+    cre_results = []
 
     with mp.Pool(processes=nproc) as pool, tqdm.tqdm(total=len(genomes)) as pbar:
         def progress(*args):
@@ -568,6 +608,8 @@ def optimal_kmer_size(
             kmax=kmax,
             counts=counts,
             fast=fast,
+            use_awk=use_awk,
+            use_ram=use_ram,
             canonical=canonical,
             lower=lower,
             hashsize=hashsize,
@@ -603,7 +645,7 @@ def optimal_kmer_size(
 
     print("Computing Observed Common Features (OCF)")
 
-    ofc_results = dict()
+    ofc_results = {}
 
     kmer_sizes = list(range(kmin, kmax + 1))
 
@@ -616,10 +658,13 @@ def optimal_kmer_size(
             genomes=genomes,
             counts=counts,
             fast=fast,
+            use_awk=use_awk,
+            use_ram=use_ram,
             canonical=canonical,
             lower=lower,
             hashsize=hashsize,
-            threads=threads
+            threads=threads,
+            
         )
 
         jobs = [
@@ -680,7 +725,9 @@ def run(args) -> None:
         in_memory=args.in_memory,
         nproc=args.nproc,
         threads=args.threads,
-        output=args.output
+        output=args.output,
+        use_awk=args.use_awk,
+        use_ram=args.use_ram
     )
 
     t1 = time.time()

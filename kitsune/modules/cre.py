@@ -24,6 +24,8 @@ def read_params(args):
     )
     p.add_argument("--filename", type=str, required=True, help="A genome file in fasta format")
     p.add_argument("--fast", action="store_true", help="Jellyfish one-pass calculation (faster)")
+    p.add_argument("--use-awk", "--awk", action="store_true", help="Use awk to filter out low frequency k-mers as alternative")
+    p.add_argument("--use-ram", "--ram", action="store_true", help="Use /dev/shm for temporary directory")
     p.add_argument("--canonical", action="store_true", help="Jellyfish count only canonical mer")
     p.add_argument("-ke", "--kend", required=True, type=int, help="Last k-mer")
     p.add_argument("-kf", "--kfrom", default=4, type=int, help="Calculate from k-mer")
@@ -48,7 +50,7 @@ def cal_cre(fsa, kend, kfrom, **karg):
     a1 = None
     a2 = None
     
-    result = dict()
+    result = {}
     
     for kmer in tqdm(range(kend, kfrom-1, -1)):
         if a0 is None:
