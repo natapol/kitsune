@@ -23,6 +23,8 @@ def read_params(args):
     )
     p.add_argument("--filenames", nargs="+", type=str, required=True, help="Genome files in fasta format"),
     p.add_argument("--fast", action="store_true", help="Jellyfish one-pass calculation (faster)")
+    p.add_argument("--use-awk", "--awk", action="store_true", help="Use awk to filter out low frequency k-mers as alternative")
+    p.add_argument("--use-ram", "--ram", action="store_true", help="Use /dev/shm for temporary directory")
     p.add_argument("--canonical", action="store_true", help="Jellyfish count only canonical mer")
     p.add_argument("-k", "--kmers", nargs="+", required=True, type=int, help="Have to state before")
     p.add_argument("-t", "--thread", type=int, default=1)
@@ -63,10 +65,10 @@ def cal_acf(fsas, kmers, **karg):
     n = len(fsas)
     
     if n >= 2:
-        result = dict()
+        result = {}
         
         for kmer in tqdm(kmers):
-            keys_array = list()
+            keys_array = []
             
             for fsa in fsas:
                 keys_array.append(set(jf.Kmercount(fsa, kmer, **karg).keys()))
